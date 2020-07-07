@@ -23,6 +23,7 @@ namespace MasterLoader
             public string CodeJson = string.Empty;
             public string[] Masters;
             public string CurrentMasterName = string.Empty;
+            public string[] Alerts;
         }
 
         public const string ConfigKey = "MasterLoaderConfig";
@@ -219,11 +220,25 @@ namespace MasterLoader
                     }
                     else
                     {
-                        Debug.Log("MasterLoader Info: Creating Sheet has completed.");
+                        Debug.Log("MasterLoader Info: Getting Sheet has completed.");
                         EditorUtility.ClearProgressBar();
                         var data = JsonUtility.FromJson<Config>(request.downloadHandler.text);
-                        ConfigData.Masters = data.Masters;
-                        return true;
+                        if (data.Alerts.Length > 0)
+                        {
+                            for (var i = 0; i < data.Alerts.Length; i++)
+                            {
+                                Debug.LogAssertion(data.Alerts[i]);
+                            }
+                        }
+                        if(data.Masters.Length < 1)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            ConfigData.Masters = data.Masters;
+                            return true;
+                        }
                     }
                 }
             }

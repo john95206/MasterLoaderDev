@@ -5,6 +5,7 @@ namespace MasterLoader
 {
     public class MasterLoadWindow : EditorWindow
     {
+        private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
         private bool _IsCompiling = false;
         private bool _IsWaitingGet = false;
@@ -46,9 +47,9 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
-            var text = string.IsNullOrEmpty(configData.DriveUrl) ?
+            var text = !_acceptedDriveUrl ?
                 "Get start to enter your Google Drive folder URL." :
-                "Accepted Drive URL";
+                "Accepted Drive URL!";
             EditorGUILayout.LabelField(text, GUILayout.Width(300));
 
             EditorGUILayout.Space();
@@ -68,13 +69,17 @@ namespace MasterLoader
             else if (!configData.DriveUrl.StartsWith("https://drive.google.com/drive/"))
             {
                 EditorGUILayout.LabelField("this URL is not drive ones", GUILayout.Width(200));
+                _acceptedDriveUrl = false;
             }
-            else if (!configData.DriveUrl.StartsWith("https://drive.google.com/drive/u/0/folders/"))
+            else if (configData.DriveUrl.StartsWith("https://drive.google.com/drive/") &&
+                configData.DriveUrl.IndexOf("folders") < 0)
             {
-                EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(200));
+                EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(250));
+                _acceptedDriveUrl = false;
             }
-            else if (configData.DriveUrl.StartsWith("https://drive.google.com/drive/u/0/folders/"))
+            else if (configData.DriveUrl.StartsWith("https://drive.google.com/drive/") && configData.DriveUrl.IndexOf("folders") > -1)
             {
+                _acceptedDriveUrl = true;
                 EditorGUILayout.BeginHorizontal();
 
                 EditorGUILayout.LabelField("Enter your master name", GUILayout.Width(200));
@@ -98,7 +103,7 @@ namespace MasterLoader
             }
             else
             {
-                EditorGUILayout.LabelField("unexpected URL.", GUILayout.Width(80));
+                EditorGUILayout.LabelField("unexpected URL.", GUILayout.Width(120));
             }
 
             EditorGUILayout.Space();
@@ -107,8 +112,11 @@ namespace MasterLoader
 
             EditorGUILayout.LabelField("Sheet URL", GUILayout.Width(80));
 
-            var isFetched = sheetUrl == configData.SheetUrl;
-            sheetUrl = configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+            sheetUrl = EditorGUILayout.TextField(sheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+            if (sheetUrl != configData.SheetUrl)
+            {
+                configData.IsFetched = false;
+            }
             var isValid = false;
 
             if(sheetUrl != string.Empty)
@@ -121,7 +129,7 @@ namespace MasterLoader
                 else
                 {
                     isValid = true;
-                    var fetchButton = GUILayout.Button("↱↲", GUILayout.Width(50));
+                    var fetchButton = GUILayout.Button("Fetch", GUILayout.Width(80));
                     EditorGUILayout.EndHorizontal();
                     if (fetchButton)
                     {
@@ -133,11 +141,16 @@ namespace MasterLoader
                             configData.IsFetched = true;
                             MasterLoader.SaveConfig();
                         }
+                        else
+                        {
+                            configData.IsFetched = false;
+                            MasterLoader.SaveConfig();
+                        }
                     }
                 }
             }
 
-            if(MasterLoader.ConfigData == null || !isValid)
+            if((MasterLoader.ConfigData == null || !isValid) || !configData.IsFetched)
             {
                 return;
             }
@@ -159,7 +172,7 @@ namespace MasterLoader
                 EditorGUILayout.Space();
 
                 _currentMasterName = configData.Masters[configData.SheetIndex];
-                var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master", GUILayout.Width(180.0f));
+                var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
 
                 if (createMasterButton)
                 {
