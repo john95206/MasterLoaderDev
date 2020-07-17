@@ -31,7 +31,9 @@ namespace MasterLoader
                     IsAuto = false,
                     IsFetched = false,
                     SheetIndex = 0,
-                    CodeJson = string.Empty
+                    CodeJson = string.Empty,
+                    IsAll = false,
+                    AllCurrentIndex = 0
                 };
                 Debug.Log("MasterLoader Info: Initialized");
             }
@@ -171,13 +173,59 @@ namespace MasterLoader
 
                 EditorGUILayout.Space();
 
-                _currentMasterName = configData.Masters[configData.SheetIndex];
-                var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
+                if (!configData.IsAll)
+                {
+                    _currentMasterName = configData.Masters[configData.SheetIndex];
+                }
 
+                var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
                 if (createMasterButton)
                 {
                     MasterLoader.LoadMaster(_currentMasterName);
                     _IsWaitingGet = true;
+                }
+
+                var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
+                if (resetAllButton)
+                {
+                    MasterLoader.ResetCreateAllConfig();
+                }
+
+                if (!configData.IsAll)
+                {
+                    var createAllButton = GUILayout.Button($"Create All Master");
+
+                    if (createAllButton)
+                    {
+                        configData.IsAll = true;
+                        MasterLoader.SaveConfig();
+                    }
+                }
+                else
+                {
+                    if (_IsCompiling || _IsWaitingGet)
+                    {
+                        Debug.Log($"Compiling: {_IsCompiling}");
+                        Debug.Log($"WaitingGet: {_IsWaitingGet}");
+                    }
+                    else if(configData.AllCurrentIndex > configData._AllCurrentIndex)
+                    {
+                    }
+                    else if(configData.AllCurrentIndex < configData.Masters.Length)
+                    {
+                        var index = configData.AllCurrentIndex;
+                        configData.AllCurrentIndex++;
+                        Debug.Log($"LoadIndex++: {configData.AllCurrentIndex}");
+                        MasterLoader.SaveConfig();
+                        Debug.Log($"LoadMasterIndex: {index}");
+                        _currentMasterName = configData.Masters[index];
+                        MasterLoader.LoadMaster(_currentMasterName);
+                    }
+                    else if(configData.AllCurrentIndex == configData.Masters.Length)
+                    {
+                        Debug.Log("All Create has Done");
+                        MasterLoader.ResetCreateAllConfig();
+                    }
                 }
 
                 EditorGUILayout.Space();
@@ -200,7 +248,7 @@ namespace MasterLoader
                     _IsCompiling = true;
                 }
             }
-            if (_IsCompiling)
+            if (_IsCompiling || configData.IsAll)
             {
                 if (!EditorApplication.isCompiling)
                 {
@@ -221,6 +269,8 @@ namespace MasterLoader
                     _IsWaitingGet = false;
 
                     Debug.Log($"MasterLoader Info: {MasterLoader.Master} Completely Created!");
+                    configData._AllCurrentIndex++;
+                    MasterLoader.SaveConfig();
                 }
             }
         }

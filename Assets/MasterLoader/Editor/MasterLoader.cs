@@ -20,6 +20,9 @@ namespace MasterLoader
             public bool IsFetched = false;
             public int SheetIndex = 0;
             public bool IsAuto = false;
+            public bool IsAll = false;
+            public int AllCurrentIndex = 0;
+            public int _AllCurrentIndex = 0;
             public string CodeJson = string.Empty;
             public string[] Masters;
             public string CurrentMasterName = string.Empty;
@@ -88,10 +91,10 @@ namespace MasterLoader
                 {
                     if (state == PlayModeStateChange.EnteredEditMode)
                     {
-                        for(var i = 0; i < ConfigData.Masters.Length; i++)
-                        {
-                            LoadMaster(ConfigData.Masters[i]);
-                        }
+                        //for(var i = 0; i < ConfigData.Masters.Length; i++)
+                        //{
+                        //    LoadMaster(ConfigData.Masters[i]);
+                        //}
                     }
                 }
             };
@@ -115,14 +118,13 @@ namespace MasterLoader
 
                     while (req.progress < 1)
                     {
-                        EditorUtility.DisplayProgressBar("Getting Mster Data...", $"{request.downloadProgress * 100}%", request.downloadProgress);
+                        EditorUtility.DisplayProgressBar("Getting Master Data...", $"{request.downloadProgress * 100}%", request.downloadProgress);
                     }
 
                     if (request.isHttpError || request.isNetworkError)
                     {
                         EditorUtility.ClearProgressBar();
                         Debug.LogError("MasterLoader Info: NetWork Error.");
-                        EditorUtility.ClearProgressBar();
                         throw new Exception(request.error);
                     }
                     else
@@ -149,7 +151,6 @@ namespace MasterLoader
             {
                 EditorUtility.ClearProgressBar();
                 Debug.LogError("MasterLoader Info: Request has failed.");
-                EditorUtility.ClearProgressBar();
                 Debug.LogException(e);
             }
         }
@@ -255,6 +256,14 @@ namespace MasterLoader
         {
             EditorPrefs.SetString(ConfigKey, JsonUtility.ToJson(ConfigData));
             ConfigData = JsonUtility.FromJson<Config>(EditorPrefs.GetString(ConfigKey));
+        }
+
+        public static void ResetCreateAllConfig()
+        {
+            ConfigData.IsAll = false;
+            ConfigData.AllCurrentIndex = 0;
+            ConfigData._AllCurrentIndex = 0;
+            SaveConfig();
         }
     }
 }
