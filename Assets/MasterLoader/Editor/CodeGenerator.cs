@@ -14,7 +14,7 @@ namespace MasterLoader
 
         private const string cs = ".cs";
 
-        public static string[] Generate(string masterName, string masterPath, string Master, Base result)
+        public static bool Generate(string masterName, string masterPath, string Master, Base result)
         {
             var typeList = result.Type;
             var commentList = result.Comment;
@@ -172,7 +172,9 @@ public class {masterName}
                 }
                 catch (Exception e)
                 {
+                    Debug.LogError(e.Message);
                     Debug.LogError($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string' type.\n check your master sheet's type or value row.");
+                    return false;
                 }
 
                 var setDataCode = $@"var dataList = new List<{masterName}>();
@@ -254,13 +256,13 @@ public class {masterName}{Master} : ScriptableObject
                 using (var sr = File.OpenText(masterCsPath))
                 {
                 }
-                return valueList;
+                return true;
             }
             catch (Exception e)
             {
                 Debug.LogError($"MasterLoader Info: {e.Message}");
                 Debug.LogError("MasterLoader Info: MasterLoader successed loading master data, but couldn't get argument successfuly.\n please check your master sheet's 'type row' or 'sheet name'");
-                return null;
+                return false;
             }
         }
     }
