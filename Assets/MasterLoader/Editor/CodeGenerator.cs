@@ -47,9 +47,13 @@ namespace MasterLoader
                 var comment = string.Empty;
                 if (commentList[i] != string.Empty)
                 {
+                    var comments = commentList[i].Split('\n');
+                    for(var row = 0; row < comments.Length; row++)
+                    {
+                        comment += "    /// " + comments[row] + "\n";
+                    }
                     comment = $@"/// <summary>
-    /// {commentList[i]}
-    /// </summary>";
+{comment}    /// </summary>";
                 }
 
                 body += $@"
