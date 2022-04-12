@@ -150,9 +150,17 @@ namespace MasterLoader
                             ConfigData.CodeJson = json;
                             ConfigData.CurrentMasterName = masterName;
                             SaveConfig();
-                            var data = CodeGenerator.Generate(masterName, path, Master, result);
-                            Debug.Log($"MasterLoader Info: {masterName} has Loaded");
-                            return true;
+                            var hasSucceced = CodeGenerator.Generate(masterName, path, Master, result);
+                            if (hasSucceced)
+                            {
+                                Debug.Log($"MasterLoader Info: {masterName} has Loaded");
+                                return true;
+                            }
+                            else
+                            {
+                                Debug.LogError($"MasterLoader Info: {masterName} loading has failed.");
+                                return false;
+                            }
                         }
                     }
                 }
