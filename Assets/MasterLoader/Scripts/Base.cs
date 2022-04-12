@@ -10,5 +10,6 @@ namespace MasterLoader
         public string[] Type;
         public string[] Comment;
         public string[] ValueList;
+        public string[] Alerts;
     }
 }

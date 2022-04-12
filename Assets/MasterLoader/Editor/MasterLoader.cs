@@ -34,7 +34,7 @@ namespace MasterLoader
 
         public const string Master = "Master";
         private const string api =
-            "https://script.google.com/macros/s/AKfycbymk4DIc6mHGF_r642xzx3p8cyNV5awY8BQBICFY1btpwmfMS80/exec?";
+            "https://script.google.com/macros/s/AKfycbwjx-pDNW89Hzi0SV_hGHzVhOMt2_v6K6r4S9Txd_JTuiilzxjHOqjwo3IYcm7PnVWGZQ/exec?";
         private const string urlName = "url=";
         /// <summary>
         /// doGet時の独自変数
@@ -106,7 +106,7 @@ namespace MasterLoader
         /// <param name="masterName">取得するマスタ名</param>
         /// <param name="done">マスタ取得時に起こしたいイベント</param>
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
-        public static void LoadMaster(string masterName, Action done = null)
+        public static bool LoadMaster(string masterName, Action done = null)
         {
             var url = $"{api}function=LoadMaster&{sheetName}{masterName}&{urlName}{ConfigData.SheetUrl}";
 
@@ -123,43 +123,56 @@ namespace MasterLoader
 
                     if (request.isHttpError || request.isNetworkError)
                     {
-                        EditorUtility.ClearProgressBar();
                         Debug.LogError("MasterLoader Info: NetWork Error.");
                         throw new Exception(request.error);
                     }
                     else
                     {
-                        EditorUtility.ClearProgressBar();
                         var json = request.downloadHandler.text;
                         if (json.Contains("<!DOCTYPE html>"))
                         {
                             Debug.Log(json);
-                            return;
+                            return false;
                         }
 
                         var result = JsonUtility.FromJson<Base>(json);
 
-                        ConfigData.CodeJson = json;
-                        ConfigData.CurrentMasterName = masterName;
-                        SaveConfig();
-                        var data = CodeGenerator.Generate(masterName, path, Master, result);
-                        Debug.Log($"MasterLoader Info: {masterName} has Loaded");
+                        if(result.Alerts?.Length > 0)
+                        {
+                            for(var i = 0; i < result.Alerts.Length; i++)
+                            {
+                                Debug.LogError($"MasterLoader Info: {result.Alerts[i]}");
+                            }
+                            return false;
+                        }
+                        else
+                        {
+                            ConfigData.CodeJson = json;
+                            ConfigData.CurrentMasterName = masterName;
+                            SaveConfig();
+                            var data = CodeGenerator.Generate(masterName, path, Master, result);
+                            Debug.Log($"MasterLoader Info: {masterName} has Loaded");
+                            return true;
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
-                EditorUtility.ClearProgressBar();
                 Debug.LogError("MasterLoader Info: Request has failed.");
                 Debug.LogException(e);
+                return false;
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
         {
-            var sheetName = $"{masterName}Master";
-            var url = $"{api}function=CreateSheet&masterName={masterName}&id={id}&sheetName={sheetName}";
-            
+            var url = $"{api}function=CreateSheet&masterName={masterName}&id={id}&sheetName={masterName}";
+
             try
             {
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
@@ -179,15 +192,19 @@ namespace MasterLoader
                     }
                     else
                     {
-                        Debug.Log("MasterLoader Info: Creating Sheet has completed.");
                         EditorUtility.ClearProgressBar();
                         var json = request.downloadHandler.text;
                         var returnConfig = JsonUtility.FromJson<Config>(json);
                         ConfigData.SheetUrl = returnConfig.SheetUrl;
                         ConfigData.Masters = returnConfig.Masters;
                         ConfigData.CurrentMasterName = masterName;
-                        SaveConfig();
+                        Debug.Log("MasterLoader Info: Creating Sheet has completed.");
+                        foreach(var m in ConfigData.Masters)
+                        {
+                            Debug.Log($"MasterLoader Info: sheet '{m}' has created.");
+                        }
                     }
+                    SaveConfig();
                 }
             }
             catch (Exception e)
@@ -221,11 +238,11 @@ namespace MasterLoader
                     }
                     else
                     {
-                        Debug.Log("MasterLoader Info: Getting Sheet has completed.");
                         EditorUtility.ClearProgressBar();
                         var data = JsonUtility.FromJson<Config>(request.downloadHandler.text);
                         if (data.Alerts.Length > 0)
                         {
+                            Debug.LogError($"MasterLoader Info: {data.Alerts.Length} sheet problems detected.");
                             for (var i = 0; i < data.Alerts.Length; i++)
                             {
                                 Debug.LogAssertion(data.Alerts[i]);
@@ -233,10 +250,12 @@ namespace MasterLoader
                         }
                         if(data.Masters.Length < 1)
                         {
+                            Debug.LogError("MasterLoader Info: Loadable master is nothing. Please fix sheet problems.");
                             return false;
                         }
                         else
                         {
+                            Debug.Log("MasterLoader Info: Getting Sheet has completed.");
                             ConfigData.Masters = data.Masters;
                             return true;
                         }

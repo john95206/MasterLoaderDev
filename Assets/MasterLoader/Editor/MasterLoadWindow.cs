@@ -10,6 +10,7 @@ namespace MasterLoader
         private bool _IsCompiling = false;
         private bool _IsWaitingGet = false;
         private string _currentMasterName = "";
+        private string driveUrl = string.Empty;
         private string sheetUrl = string.Empty;
         private string masterName = string.Empty;
         private int sheetIndex = 0;
@@ -62,24 +63,28 @@ namespace MasterLoader
 
             configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
+            driveUrl = configData.DriveUrl;
+
             EditorGUILayout.EndHorizontal();
 
-            if (string.IsNullOrEmpty(configData.DriveUrl))
+            var isDriveUrl = driveUrl.StartsWith("https://drive.google.com/drive/");
+
+            if (string.IsNullOrEmpty(driveUrl))
             {
                 EditorGUILayout.LabelField("Enter your drive URL", GUILayout.Width(200));
             }
-            else if (!configData.DriveUrl.StartsWith("https://drive.google.com/drive/"))
+            else if (!isDriveUrl)
             {
                 EditorGUILayout.LabelField("this URL is not drive ones", GUILayout.Width(200));
                 _acceptedDriveUrl = false;
             }
-            else if (configData.DriveUrl.StartsWith("https://drive.google.com/drive/") &&
-                configData.DriveUrl.IndexOf("folders") < 0)
+            else if (isDriveUrl &&
+                driveUrl.IndexOf("folders") < 0)
             {
                 EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(250));
                 _acceptedDriveUrl = false;
             }
-            else if (configData.DriveUrl.StartsWith("https://drive.google.com/drive/") && configData.DriveUrl.IndexOf("folders") > -1)
+            else if (isDriveUrl && driveUrl.IndexOf("folders") > -1)
             {
                 _acceptedDriveUrl = true;
                 EditorGUILayout.BeginHorizontal();
@@ -97,8 +102,8 @@ namespace MasterLoader
                     var createButton = GUILayout.Button("Create", GUILayout.Width(50));
                     if (createButton)
                     {
-                        var idIndex = configData.DriveUrl.LastIndexOf('/');
-                        var id = configData.DriveUrl.Substring(idIndex + 1);
+                        var idIndex = driveUrl.LastIndexOf('/');
+                        var id = driveUrl.Substring(idIndex + 1);
                         MasterLoader.CreateSpreadSheet(masterName, id);
                     }
                 }
@@ -114,7 +119,10 @@ namespace MasterLoader
 
             EditorGUILayout.LabelField("Sheet URL", GUILayout.Width(80));
 
-            sheetUrl = EditorGUILayout.TextField(sheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+            configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+
+            sheetUrl = configData.SheetUrl;
+
             if (sheetUrl != configData.SheetUrl)
             {
                 configData.IsFetched = false;
@@ -181,8 +189,7 @@ namespace MasterLoader
                 var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
                 if (createMasterButton)
                 {
-                    MasterLoader.LoadMaster(_currentMasterName);
-                    _IsWaitingGet = true;
+                    _IsWaitingGet = MasterLoader.LoadMaster(_currentMasterName);
                 }
 
                 var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
@@ -219,7 +226,11 @@ namespace MasterLoader
                         MasterLoader.SaveConfig();
                         Debug.Log($"LoadMasterIndex: {index}");
                         _currentMasterName = configData.Masters[index];
-                        MasterLoader.LoadMaster(_currentMasterName);
+                        if (!MasterLoader.LoadMaster(_currentMasterName))
+                        {
+                            Debug.Log("Master Loader Info: loading has cancelled");
+                            MasterLoader.ResetCreateAllConfig();
+                        }
                     }
                     else if(configData.AllCurrentIndex == configData.Masters.Length)
                     {
@@ -262,11 +273,17 @@ namespace MasterLoader
                     }
                     var method = soMaster.GetType().GetMethod("SetData");
 
-                    var valueList = JsonUtility.FromJson<Base>(configData.CodeJson).ValueList;
-                    method.Invoke(soMaster, new object[] { valueList });
+                    try
+                    {
+                        var valueList = JsonUtility.FromJson<Base>(configData.CodeJson).ValueList;
+                        method.Invoke(soMaster, new object[] { valueList });
+                    }
+                    finally
+                    {
+                        _IsCompiling = false;
+                        _IsWaitingGet = false;
+                    }
                     EditorUtility.SetDirty(soMaster);
-                    _IsCompiling = false;
-                    _IsWaitingGet = false;
 
                     Debug.Log($"MasterLoader Info: {MasterLoader.Master} Completely Created!");
                     configData._AllCurrentIndex++;
