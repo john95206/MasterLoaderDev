@@ -94,7 +94,12 @@ public class {masterName}
                             case "int":
                                 parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
                 {{
-                    {masterProperty}.{parameter} = int.Parse(data[valueIndex]);
+                    if(!int.TryParse(data[valueIndex], out var number))
+                    {{
+                        OutputParseErrorLog(data[valueIndex], ""int"");
+                        break;
+                    }}
+                    {masterProperty}.{parameter} = number;
                     Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
                     Debug.Log($""doneIndex = {{doneIndex}}"");
                     isDone = true;
@@ -106,7 +111,12 @@ public class {masterName}
                             case "float":
                                 parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
                 {{
-                    {masterProperty}.{parameter} = float.Parse(data[valueIndex]);
+                    if(!float.TryParse(data[valueIndex], out var number))
+                    {{
+                        OutputParseErrorLog(data[valueIndex], ""float"");
+                        break;
+                    }}
+                    {masterProperty}.{parameter} = number;
                     Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
                     Debug.Log($""doneIndex = {{doneIndex}}"");
                     isDone = true;
@@ -118,8 +128,13 @@ public class {masterName}
                             case "double":
                                 parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
                 {{
-                    {masterProperty}.{parameter} = double.Parse(data[valueIndex]);
-                    Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                    if(!double.TryParse(data[valueIndex], out var number))
+                    {{
+                        OutputParseErrorLog(data[valueIndex], ""double"");
+                        break;
+                    }}
+                    {masterProperty}.{parameter} = number;
+                    Debug.Log($""{masterProperty}.{parameter} = number"");
                     Debug.Log($""doneIndex = {{doneIndex}}"");
                     isDone = true;
                     doneIndex++;
@@ -130,7 +145,12 @@ public class {masterName}
                             case "bool":
                                 parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
                 {{
-                    {masterProperty}.{parameter} = bool.Parse(data[valueIndex]);
+                    if(!bool.TryParse(data[valueIndex], out var value))
+                    {{
+                        OutputParseErrorLog(data[valueIndex], ""bool"");
+                        break;
+                    }}
+                    {masterProperty}.{parameter} = value;
                     Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
                     Debug.Log($""doneIndex = {{doneIndex}}"");
                     isDone = true;
@@ -210,26 +230,30 @@ public class {masterName}{Master} : ScriptableObject
         }}
         return _value;
     }}
+
+    private void OutputParseErrorLog(string s, string type)
+    {{
+        Debug.LogError(($""MasterLoaderInfo: could not cast {{s}} to {{type}}.""));
+    }}
 }}";
 
                 var rowCsPath = $"{csPath}{masterName}{cs}";
                 var masterCsPath = $"{csPath}{masterName}{Master}{cs}";
 
-                if (AssetDatabase.GetMainAssetTypeAtPath(rowCsPath) != null)
+                using (var sw = File.CreateText(rowCsPath))
                 {
-                    AssetDatabase.DeleteAsset(rowCsPath);
+                    sw.Write(rowCode);
                 }
-                if (AssetDatabase.GetMainAssetTypeAtPath(masterCsPath) != null)
+                using (var sr = File.OpenText(rowCsPath))
                 {
-                    AssetDatabase.DeleteAsset(masterCsPath);
                 }
-                var rowCs = AssetDatabase.GenerateUniqueAssetPath(rowCsPath);
-                File.WriteAllText(rowCs, rowCode);
-                var masterCs = AssetDatabase.GenerateUniqueAssetPath(masterCsPath);
-                File.WriteAllText(masterCs, masterCode);
-
-                AssetDatabase.Refresh();
-
+                using (var sw = File.CreateText(masterCsPath))
+                {
+                    sw.Write(masterCode);
+                }
+                using (var sr = File.OpenText(masterCsPath))
+                {
+                }
                 return valueList;
             }
             catch (Exception e)
