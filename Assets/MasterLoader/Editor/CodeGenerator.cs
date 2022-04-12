@@ -1,10 +1,6 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.IO;
-using Object = UnityEngine.Object;
 
 namespace MasterLoader
 {
