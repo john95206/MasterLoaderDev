@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 using System;
 using System.IO;
+using System.Text;
 
 namespace MasterLoader
 {
@@ -238,20 +240,16 @@ public class {masterName}{Master} : ScriptableObject
                 var rowCsPath = $"{csPath}{masterName}{cs}";
                 var masterCsPath = $"{csPath}{masterName}{Master}{cs}";
 
-                using (var sw = File.CreateText(rowCsPath))
+                using (var sw = new StreamWriter(rowCsPath, false, Encoding.UTF8))
                 {
                     sw.Write(rowCode);
                 }
-                using (var sr = File.OpenText(rowCsPath))
-                {
-                }
-                using (var sw = File.CreateText(masterCsPath))
+                using (var sw = new StreamWriter(masterCsPath, false, Encoding.UTF8))
                 {
                     sw.Write(masterCode);
                 }
-                using (var sr = File.OpenText(masterCsPath))
-                {
-                }
+                AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
+
                 return true;
             }
             catch (Exception e)
