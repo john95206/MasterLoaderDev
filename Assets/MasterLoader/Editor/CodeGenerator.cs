@@ -146,6 +146,7 @@ public class {masterName}
                                 break;
                             case "double":
                                 switchCode += $@"
+                    case {parameterIndex}:
                     {{
                         if(!double.TryParse(data[valueIndex], out var number))
                         {{
@@ -162,6 +163,7 @@ public class {masterName}
                                 break;
                             case "bool":
                                 switchCode += $@"
+                    case {parameterIndex}:
                     {{
                         if(!bool.TryParse(data[valueIndex], out var value))
                         {{
@@ -239,21 +241,21 @@ public enum {ev.Parameter.ToUpper()}
                     return false;
                 }
 
+                var length = parameterList.Length - EnumValues.Count;
                 var setDataCode = $@"var dataList = new List<{masterName}>();
         var {masterProperty} = new {masterName}{{}};
         var doneIndex = 0;
         for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)
         {{
             var isDone = false;
-            if(valueIndex == 0 || doneIndex >= {parameterList.Length})
+            if(valueIndex == 0 || doneIndex >= {length})
             {{
                 Debug.Log(""new Instance"");
-                Debug.Log(valueIndex);
                 Debug.Log(valueIndex);
                 doneIndex = 0;
                 {masterProperty} = new {masterName}{{}};
             }}
-            for(var parameterIndex = 0; parameterIndex < {parameterList.Length}; parameterIndex++)
+            for(var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)
             {{
                 if(isDone)
                 {{
@@ -261,7 +263,7 @@ public enum {ev.Parameter.ToUpper()}
                 }}
 {parameterCode}
             }}
-            if(doneIndex == {parameterList.Length - EnumValues.Count} - 1)
+            if(doneIndex == {length} - 1)
             {{
                 dataList.Add({masterProperty});
             }}
