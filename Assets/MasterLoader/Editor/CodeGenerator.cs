@@ -3,12 +3,22 @@ using UnityEngine;
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MasterLoader
 {
     public class CodeGenerator
     {
         static CodeGenerator() { }
+
+        private class EnumValue
+        {
+            public string Parameter;
+            public List<string> ValueList = new List<string>();
+        }
+
+        private static List<EnumValue> EnumValues = new List<EnumValue>();
 
         private const string cs = ".cs";
 
@@ -55,9 +65,18 @@ namespace MasterLoader
 {comment}    /// </summary>";
                 }
 
+                var parameterString = string.Empty;
+                if (typeList[i].Equals("enum"))
+                {
+                    parameterString = $"{parameterList[i].ToUpper()} {parameterList[i].ToLower()}";
+                }
+                else
+                {
+                    parameterString = $"{ typeList[i]} { parameterList[i]}";
+                }
                 body += $@"
     {comment}
-    public {typeList[i]} {parameterList[i]};";
+    public {parameterString};";
             }
 
             var rowCode =
@@ -157,6 +176,29 @@ public class {masterName}
                         continue;
                     }}";
                                 break;
+                            case "enum":
+                                var value = valueList[parameterIndex];
+                                Debug.Log(value);
+                                if (EnumValues.Count > 0)
+                                {
+                                    var hasExisted = false;
+                                    foreach(var ev in EnumValues)
+                                    {
+                                        hasExisted = ev.Parameter.Equals(parameter);
+                                        if (!hasExisted)
+                                        {
+                                            continue;
+                                        }
+                                        if (ev.ValueList.Contains(value))
+                                        {
+                                            Debug.Log($"MasterLoaderInfo: {parameter} and {value} has existed");
+                                            break;
+                                        }
+                                        ev.ValueList.Add(value);
+                                        break;
+                                    }
+                                }
+                                EnumValues.Add(new EnumValue { Parameter = parameter, ValueList = new List<string>() { value } });
                                 break;
                             default:
                                 Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string' type.\n check your master sheet's type or value row.");
@@ -170,7 +212,23 @@ public class {masterName}
                     {switchCode}
                 }}";
 
+                    if(EnumValues.Count > 0)
+                    {
+                        foreach(var ev in EnumValues)
                         {
+                            Debug.Log($"MasterLoaderInfo: {ev.Parameter} enum generatable.");
+                            var valuesString = string.Empty;
+                            for(var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
+                            {
+                                valuesString += $@"
+    {ev.ValueList[vIndex]}";
+                                Debug.Log($"{ev.ValueList[vIndex]}");
+                            }
+                            rowCode += $@"
+
+public enum {ev.Parameter.ToUpper()}
+{{{valuesString}
+}}";
                         }
                     }
                 }
@@ -203,7 +261,7 @@ public class {masterName}
                 }}
 {parameterCode}
             }}
-            if(doneIndex == {parameterList.Length} - 1)
+            if(doneIndex == {parameterList.Length - EnumValues.Count} - 1)
             {{
                 dataList.Add({masterProperty});
             }}
