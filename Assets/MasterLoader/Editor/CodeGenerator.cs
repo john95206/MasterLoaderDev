@@ -73,99 +73,104 @@ public class {masterName}
                 var parameterCode = string.Empty;
                 try
                 {
+                    var switchCode = string.Empty;
                     for (var parameterIndex = 0; parameterIndex < parameterList.Length; parameterIndex++)
                     {
                         var parameter = parameterList[parameterIndex];
                         switch (typeList[parameterIndex])
                         {
                             case "string":
-                                parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
-                {{
-                    {masterProperty}.{parameter} = data[valueIndex];
-                    Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                    Debug.Log($""doneIndex = {{doneIndex}}"");
-                    isDone = true;
-                    doneIndex++;
-                    continue;
-                }}
-";
+                                switchCode += $@"
+                    case {parameterIndex}:
+                    {{
+                        {masterProperty}.{parameter} = data[valueIndex];
+                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
                                 break;
                             case "int":
-                                parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
-                {{
-                    if(!int.TryParse(data[valueIndex], out var number))
+                                switchCode += $@"
+                    case {parameterIndex}:
                     {{
-                        OutputParseErrorLog(data[valueIndex], ""int"");
-                        break;
-                    }}
-                    {masterProperty}.{parameter} = number;
-                    Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                    Debug.Log($""doneIndex = {{doneIndex}}"");
-                    isDone = true;
-                    doneIndex++;
-                    continue;
-                }}
-";
+                        if(!int.TryParse(data[valueIndex], out var number))
+                        {{
+                            OutputParseErrorLog(data[valueIndex], ""int"");
+                            break;
+                        }}
+                        {masterProperty}.{parameter} = number;
+                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
                                 break;
                             case "float":
-                                parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
-                {{
-                    if(!float.TryParse(data[valueIndex], out var number))
+                                switchCode += $@"
+                    case {parameterIndex}:
                     {{
-                        OutputParseErrorLog(data[valueIndex], ""float"");
-                        break;
-                    }}
-                    {masterProperty}.{parameter} = number;
-                    Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                    Debug.Log($""doneIndex = {{doneIndex}}"");
-                    isDone = true;
-                    doneIndex++;
-                    continue;
-                }}
-";
+                        if(!float.TryParse(data[valueIndex], out var number))
+                        {{
+                            OutputParseErrorLog(data[valueIndex], ""float"");
+                            break;
+                        }}
+                        {masterProperty}.{parameter} = number;
+                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
                                 break;
                             case "double":
-                                parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
-                {{
-                    if(!double.TryParse(data[valueIndex], out var number))
+                                switchCode += $@"
                     {{
-                        OutputParseErrorLog(data[valueIndex], ""double"");
-                        break;
-                    }}
-                    {masterProperty}.{parameter} = number;
-                    Debug.Log($""{masterProperty}.{parameter} = number"");
-                    Debug.Log($""doneIndex = {{doneIndex}}"");
-                    isDone = true;
-                    doneIndex++;
-                    continue;
-                }}
-";
+                        if(!double.TryParse(data[valueIndex], out var number))
+                        {{
+                            OutputParseErrorLog(data[valueIndex], ""double"");
+                            break;
+                        }}
+                        {masterProperty}.{parameter} = number;
+                        Debug.Log($""{masterProperty}.{parameter} = number"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
                                 break;
                             case "bool":
-                                parameterCode += $@"                if(GetPrime(valueIndex, {typeList.Length}) == {parameterIndex})
-                {{
-                    if(!bool.TryParse(data[valueIndex], out var value))
+                                switchCode += $@"
                     {{
-                        OutputParseErrorLog(data[valueIndex], ""bool"");
-                        break;
-                    }}
-                    {masterProperty}.{parameter} = value;
-                    Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                    Debug.Log($""doneIndex = {{doneIndex}}"");
-                    isDone = true;
-                    doneIndex++;
-                    continue;
-                }}
-";
+                        if(!bool.TryParse(data[valueIndex], out var value))
+                        {{
+                            OutputParseErrorLog(data[valueIndex], ""bool"");
+                            break;
+                        }}
+                        {masterProperty}.{parameter} = value;
+                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
+                                break;
                                 break;
                             default:
                                 Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string' type.\n check your master sheet's type or value row.");
                                 break;
                         }
-                        if (parameterIndex < parameterList.Length - 1)
+                    }
+
+                    parameterCode = $@"
+                switch(GetPrime(valueIndex, {typeList.Length}))
+                {{
+                    {switchCode}
+                }}";
+
                         {
-                            parameterCode += $@"                else
-";
                         }
                     }
                 }
