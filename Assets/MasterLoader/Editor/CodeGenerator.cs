@@ -22,6 +22,16 @@ namespace MasterLoader
 
         private const string cs = ".cs";
 
+        private static int GetPrime(int value, int length)
+        {
+            var _value = value;
+            while (_value >= length)
+            {
+                _value -= length;
+            }
+            return _value;
+        }
+
         public static bool Generate(string masterName, string masterPath, string Master, Base result)
         {
             var typeList = result.Type;
@@ -92,6 +102,7 @@ public class {masterName}
                 var parameterCode = string.Empty;
                 try
                 {
+                    var enumIndexList = new List<int>();
                     var switchCode = string.Empty;
                     for (var parameterIndex = 0; parameterIndex < parameterList.Length; parameterIndex++)
                     {
@@ -179,31 +190,11 @@ public class {masterName}
                     }}";
                                 break;
                             case "enum":
-                                var value = valueList[parameterIndex];
-                                Debug.Log(value);
-                                if (EnumValues.Count > 0)
-                                {
-                                    var hasExisted = false;
-                                    foreach(var ev in EnumValues)
-                                    {
-                                        hasExisted = ev.Parameter.Equals(parameter);
-                                        if (!hasExisted)
-                                        {
-                                            continue;
-                                        }
-                                        if (ev.ValueList.Contains(value))
-                                        {
-                                            Debug.Log($"MasterLoaderInfo: {parameter} and {value} has existed");
-                                            break;
-                                        }
-                                        ev.ValueList.Add(value);
-                                        break;
-                                    }
-                                }
-                                EnumValues.Add(new EnumValue { Parameter = parameter, ValueList = new List<string>() { value } });
+                                enumIndexList.Add(parameterIndex);
+                                Debug.Log($"{parameterIndex} is enumIndex");
                                 break;
                             default:
-                                Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string' type.\n check your master sheet's type or value row.");
+                                Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                                 break;
                         }
                     }
@@ -214,6 +205,41 @@ public class {masterName}
                     {switchCode}
                 }}";
 
+                    for(var i = 0; i < valueList.Length; i++)
+                    {
+                        foreach(var enumIndex in enumIndexList)
+                        {
+                            if (GetPrime(i, typeList.Length) == enumIndex)
+                            {
+                                var value = valueList[i];
+                                Debug.Log(value);
+                                var hasExisted = false;
+                                if (EnumValues.Count > 0)
+                                {
+                                    foreach (var ev in EnumValues)
+                                    {
+                                        hasExisted = ev.Parameter.Equals(parameterList[enumIndex]);
+                                        if (!hasExisted)
+                                        {
+                                            continue;
+                                        }
+                                        if (ev.ValueList.Contains(value))
+                                        {
+                                            Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
+                                            break;
+                                        }
+                                        ev.ValueList.Add(value);
+                                        break;
+                                    }
+                                }
+                                if (!hasExisted)
+                                {
+                                    EnumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
+                                }
+                            }
+                        }
+                    }
+
                     if(EnumValues.Count > 0)
                     {
                         foreach(var ev in EnumValues)
@@ -223,7 +249,7 @@ public class {masterName}
                             for(var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
                             {
                                 valuesString += $@"
-    {ev.ValueList[vIndex]}";
+    {ev.ValueList[vIndex]},";
                                 Debug.Log($"{ev.ValueList[vIndex]}");
                             }
                             rowCode += $@"
@@ -237,7 +263,7 @@ public enum {ev.Parameter.ToUpper()}
                 catch (Exception e)
                 {
                     Debug.LogError(e.Message);
-                    Debug.LogError($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string' type.\n check your master sheet's type or value row.");
+                    Debug.LogError($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                     return false;
                 }
 
