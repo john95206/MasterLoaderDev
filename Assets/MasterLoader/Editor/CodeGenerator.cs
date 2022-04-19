@@ -66,7 +66,7 @@ namespace MasterLoader
                 if (commentList[i] != string.Empty)
                 {
                     var comments = commentList[i].Split('\n');
-                    for(var row = 0; row < comments.Length; row++)
+                    for (var row = 0; row < comments.Length; row++)
                     {
                         comment += $@"    /// {comments[row]}
 ";
@@ -190,6 +190,21 @@ public class {masterName}
                     }}";
                                 break;
                             case "enum":
+                                switchCode += $@"
+                    case {parameterIndex}:
+                    {{
+                        if(!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))
+                        {{
+                            OutputParseErrorLog(data[valueIndex], ""enum"");
+                            break;
+                        }}
+                        {masterProperty}.{parameter} = value;
+                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
+                        Debug.Log($""doneIndex = {{doneIndex}}"");
+                        isDone = true;
+                        doneIndex++;
+                        continue;
+                    }}";
                                 enumIndexList.Add(parameterIndex);
                                 Debug.Log($"{parameterIndex} is enumIndex");
                                 break;
@@ -298,6 +313,7 @@ public enum {ev.Parameter.ToUpper()}
                 var masterCode =
                     $@"using UnityEngine;
 using System.Collections.Generic;
+using System;
 using MasterLoader;
 
 [CreateAssetMenu]
