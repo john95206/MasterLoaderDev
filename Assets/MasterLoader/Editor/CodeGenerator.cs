@@ -20,7 +20,10 @@ namespace MasterLoader
 
         private static List<EnumValue> EnumValues = new List<EnumValue>();
 
-        private const string cs = ".cs";
+        private const string _NAMESPACE = "MasterLoader";
+        private const string _CS = ".cs";
+        private const string _TAB = "\t";
+        private const string _LINE = "\n";
 
         private static int GetPrime(int value, int length)
         {
@@ -34,6 +37,7 @@ namespace MasterLoader
 
         public static bool Generate(string masterName, string masterPath, string Master, Base result)
         {
+            var nameSpace = _NAMESPACE;
             var typeList = result.Type;
             var commentList = result.Comment;
             var parameterList = result.Parameter;
@@ -68,11 +72,12 @@ namespace MasterLoader
                     var comments = commentList[i].Split('\n');
                     for (var row = 0; row < comments.Length; row++)
                     {
-                        comment += $@"    /// {comments[row]}
-";
+                        comment += $"{_TAB}{_TAB}/// {comments[row]}{_LINE}";
                     }
-                    comment = $@"/// <summary>
-{comment}    /// </summary>";
+                    comment = 
+                        $"{_TAB}/// <summary>{_LINE}" +
+                        $"{_TAB}{comment}" +
+                        $"{_TAB}/// </summary>{_LINE}";
                 }
 
                 var parameterString = string.Empty;
@@ -84,203 +89,47 @@ namespace MasterLoader
                 {
                     parameterString = $"{ typeList[i]} { parameterList[i]}";
                 }
-                body += $@"
-    {comment}
-    public {parameterString};";
+                body +=
+                    $"{_TAB}{comment}" +
+                    $"{_TAB}public {parameterString};{_LINE}";
             }
 
             var rowCode =
-                $@"using System;
+                "using System;" +
+                $"namespace {_NAMESPACE}{_LINE}" +
+                $"{{{_LINE}{_LINE}" +
+                $"{_TAB}[Serializable]{_LINE}" +
+                $"{_TAB}public class {masterName}{_LINE}" +
+                $"{_TAB}{{" +
+                $"{_TAB}{_TAB}{body}" +
+                $"{_TAB}}}{_LINE}" +
+                $"}}";
 
-[Serializable]
-public class {masterName}
-{{{body}
-}}";
+            var parameterCode = string.Empty;
 
             try
             {
-                var parameterCode = string.Empty;
-                try
+                var switchCode = GenerateSwitchCode(parameterList, typeList, masterProperty, out var enumIndexList);
+
+                if (string.IsNullOrEmpty(switchCode))
                 {
-                    var enumIndexList = new List<int>();
-                    var switchCode = string.Empty;
-                    for (var parameterIndex = 0; parameterIndex < parameterList.Length; parameterIndex++)
-                    {
-                        var parameter = parameterList[parameterIndex];
-                        switch (typeList[parameterIndex])
-                        {
-                            case "string":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        {masterProperty}.{parameter} = data[valueIndex];
-                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                break;
-                            case "int":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        if(!int.TryParse(data[valueIndex], out var number))
-                        {{
-                            OutputParseErrorLog(data[valueIndex], ""int"");
-                            break;
-                        }}
-                        {masterProperty}.{parameter} = number;
-                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                break;
-                            case "float":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        if(!float.TryParse(data[valueIndex], out var number))
-                        {{
-                            OutputParseErrorLog(data[valueIndex], ""float"");
-                            break;
-                        }}
-                        {masterProperty}.{parameter} = number;
-                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                break;
-                            case "double":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        if(!double.TryParse(data[valueIndex], out var number))
-                        {{
-                            OutputParseErrorLog(data[valueIndex], ""double"");
-                            break;
-                        }}
-                        {masterProperty}.{parameter} = number;
-                        Debug.Log($""{masterProperty}.{parameter} = number"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                break;
-                            case "bool":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        if(!bool.TryParse(data[valueIndex], out var value))
-                        {{
-                            OutputParseErrorLog(data[valueIndex], ""bool"");
-                            break;
-                        }}
-                        {masterProperty}.{parameter} = value;
-                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                break;
-                            case "enum":
-                                switchCode += $@"
-                    case {parameterIndex}:
-                    {{
-                        if(!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))
-                        {{
-                            OutputParseErrorLog(data[valueIndex], ""enum"");
-                            break;
-                        }}
-                        {masterProperty}.{parameter} = value;
-                        Debug.Log($""{masterProperty}.{parameter} = {{data[valueIndex]}}"");
-                        Debug.Log($""doneIndex = {{doneIndex}}"");
-                        isDone = true;
-                        doneIndex++;
-                        continue;
-                    }}";
-                                enumIndexList.Add(parameterIndex);
-                                Debug.Log($"{parameterIndex} is enumIndex");
-                                break;
-                            default:
-                                Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
-                                break;
-                        }
-                    }
-
-                    parameterCode = $@"
-                switch(GetPrime(valueIndex, {typeList.Length}))
-                {{
-                    {switchCode}
-                }}";
-
-                    for(var i = 0; i < valueList.Length; i++)
-                    {
-                        foreach(var enumIndex in enumIndexList)
-                        {
-                            if (GetPrime(i, typeList.Length) == enumIndex)
-                            {
-                                var value = valueList[i];
-                                Debug.Log(value);
-                                var hasExisted = false;
-                                if (EnumValues.Count > 0)
-                                {
-                                    foreach (var ev in EnumValues)
-                                    {
-                                        hasExisted = ev.Parameter.Equals(parameterList[enumIndex]);
-                                        if (!hasExisted)
-                                        {
-                                            continue;
-                                        }
-                                        if (ev.ValueList.Contains(value))
-                                        {
-                                            Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
-                                            break;
-                                        }
-                                        ev.ValueList.Add(value);
-                                        break;
-                                    }
-                                }
-                                if (!hasExisted)
-                                {
-                                    EnumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
-                                }
-                            }
-                        }
-                    }
-
-                    if(EnumValues.Count > 0)
-                    {
-                        foreach(var ev in EnumValues)
-                        {
-                            Debug.Log($"MasterLoaderInfo: {ev.Parameter} enum generatable.");
-                            var valuesString = string.Empty;
-                            for(var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
-                            {
-                                valuesString += $@"
-    {ev.ValueList[vIndex]},";
-                                Debug.Log($"{ev.ValueList[vIndex]}");
-                            }
-                            rowCode += $@"
-
-public enum {ev.Parameter.ToUpper()}
-{{{valuesString}
-}}";
-                        }
-                    }
+                    throw new Exception($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.Message);
-                    Debug.LogError($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
-                    return false;
-                }
+
+                parameterCode = GenerateParameterCode(typeList, switchCode);
+
+                AddEnumList(valueList, enumIndexList, typeList, parameterList);
+
+                GenerateEnumCode(rowCode);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                return false;
+            }
+
+            try
+            {
 
                 var length = parameterList.Length - EnumValues.Count;
                 var setDataCode = $@"var dataList = new List<{masterName}>();
@@ -345,8 +194,8 @@ public class {masterName}{Master} : ScriptableObject
     }}
 }}";
 
-                var rowCsPath = $"{csPath}{masterName}{cs}";
-                var masterCsPath = $"{csPath}{masterName}{Master}{cs}";
+                var rowCsPath = $"{csPath}{masterName}{_CS}";
+                var masterCsPath = $"{csPath}{masterName}{Master}{_CS}";
 
                 using (var sw = new StreamWriter(rowCsPath, false, Encoding.UTF8))
                 {
@@ -366,6 +215,157 @@ public class {masterName}{Master} : ScriptableObject
                 Debug.LogError("MasterLoader Info: MasterLoader successed loading master data, but couldn't get argument successfuly.\n please check your master sheet's 'type row' or 'sheet name'");
                 return false;
             }
+        }
+
+        private static void AddEnumList(string[] valueList, List<int> enumIndexList, string[] typeList, string[] parameterList)
+        {
+            if(valueList.Length < 1)
+            {
+                return;
+            }
+            for (var i = 0; i < valueList.Length; i++)
+            {
+                foreach (var enumIndex in enumIndexList)
+                {
+                    if (GetPrime(i, typeList.Length) == enumIndex)
+                    {
+                        var value = valueList[i];
+                        Debug.Log(value);
+                        var hasExisted = false;
+                        if (EnumValues.Count > 0)
+                        {
+                            foreach (var ev in EnumValues)
+                            {
+                                hasExisted = ev.Parameter.Equals(parameterList[enumIndex]);
+                                if (!hasExisted)
+                                {
+                                    continue;
+                                }
+                                if (ev.ValueList.Contains(value))
+                                {
+                                    Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
+                                    break;
+                                }
+                                ev.ValueList.Add(value);
+                                break;
+                            }
+                        }
+                        if (!hasExisted)
+                        {
+                            EnumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string GenerateSwitchCode(string[] parameterList, string[] typeList, string masterProperty, out List<int> enumIndexList)
+        {
+            enumIndexList = new List<int>();
+            var code = string.Empty;
+            for (var parameterIndex = 0; parameterIndex < parameterList.Length; parameterIndex++)
+            {
+                var parameter = parameterList[parameterIndex];
+                var type = typeList[parameterIndex];
+                switch (type)
+                {
+                    case "string":
+                        code +=
+                        $"{GetBaseIndent(6)}case {parameterIndex}:" +
+                        $"{GetBaseIndent(6)}{{" +
+                        $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+                        $"{GetBaseIndent(6)}}}";
+                        break;
+                    case "int":
+                    case "float":
+                    case "double":
+                    case "bool":
+                        code += GetSwitchCode(type, masterProperty, parameter, parameterIndex);
+                        break;
+                    case "enum":
+                        code += $"{GetBaseIndent(6)}case {parameterIndex}:" +
+                        $"{GetBaseIndent(6)}{{" +
+                        $"{GetBaseIndent(6)}{_TAB}if(!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))" +
+                        $"{GetBaseIndent(6)}{_TAB}{{" +
+                        $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], {type});" +
+                        $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
+                        $"{GetBaseIndent(6)}{_TAB}}}" +
+                        $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+                        $"{GetBaseIndent(6)}}}";
+                        enumIndexList.Add(parameterIndex);
+                        Debug.Log($"{parameterIndex} is enumIndex");
+                        break;
+                    default:
+                        Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
+                        break;
+                }
+            }
+            return code;
+        }
+
+        private static string GenerateParameterCode(string[] typeList, string switchCode)
+        {
+            return
+            $"{GetBaseIndent(5)}switch(GetPrime(valueIndex, {typeList.Length}))" +
+            $"{GetBaseIndent(5)}{{" +
+                                    switchCode +
+            $"{GetBaseIndent(5)}}}";
+        }
+
+        private static void GenerateEnumCode(string rowCode)
+        {
+            if (EnumValues.Count < 1)
+            {
+                return;
+            }
+            foreach (var ev in EnumValues)
+            {
+                Debug.Log($"MasterLoaderInfo: {ev.Parameter} enum generatable.");
+                var valuesString = string.Empty;
+                for (var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
+                {
+                    valuesString +=
+                    $"{GetBaseIndent(2)}{ev.ValueList[vIndex]},";
+                    Debug.Log($"{ev.ValueList[vIndex]}");
+                }
+                rowCode += $"{_LINE}" +
+                $"{GetBaseIndent(1)}public enum {ev.Parameter.ToUpper()}" +
+                $"{GetBaseIndent(1)}{{{valuesString}" +
+                $"{GetBaseIndent(1)}}}";
+            }
+        }
+
+        private static string GetBaseIndent(int num = 4)
+        {
+            var value = _LINE;
+            for(var i = 0; i < num; i++)
+            {
+                value += _TAB;
+            }
+            return value;
+        }
+
+        private static string GetInputCode(string masterProperty, string parameter)
+        {
+            return
+            $"{_TAB}{masterProperty}.{parameter} = value;" +
+            $"{_TAB}isDone = true;" +
+            $"{_TAB}doneIndex++;" +
+            $"{_TAB}continue;";
+        }
+
+        private static string GetSwitchCode(string type, string masterProperty, string parameter, int parameterIndex)
+        {
+            return
+            $"{GetBaseIndent(6)}case {parameterIndex}:" +
+            $"{GetBaseIndent(6)}{{" +
+            $"{GetBaseIndent(6)}{_TAB}if({type}.TryParse(data[valueIndex], out var value))" +
+            $"{GetBaseIndent(6)}{_TAB}{{" +
+            $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], {type});" +
+            $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
+            $"{GetBaseIndent(6)}{_TAB}}}" +
+            $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+            $"{GetBaseIndent(6)}}}";
         }
     }
 }
