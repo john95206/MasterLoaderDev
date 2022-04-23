@@ -132,67 +132,8 @@ namespace MasterLoader
             {
 
                 var length = parameterList.Length - EnumValues.Count;
-                var setDataCode = $@"var dataList = new List<{masterName}>();
-        var {masterProperty} = new {masterName}{{}};
-        var doneIndex = 0;
-        for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)
-        {{
-            var isDone = false;
-            if(valueIndex == 0 || doneIndex >= {length})
-            {{
-                Debug.Log(""new Instance"");
-                Debug.Log(valueIndex);
-                doneIndex = 0;
-                {masterProperty} = new {masterName}{{}};
-            }}
-            for(var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)
-            {{
-                if(isDone)
-                {{
-                    continue;
-                }}
-{parameterCode}
-            }}
-            if(doneIndex == {length} - 1)
-            {{
-                dataList.Add({masterProperty});
-            }}
-        }}
-        _{masterProperty} = dataList;";
-                var masterCode =
-                    $@"using UnityEngine;
-using System.Collections.Generic;
-using System;
-using MasterLoader;
-
-[CreateAssetMenu]
-public class {masterName}{Master} : ScriptableObject
-{{
-    public List<{masterName}> {masterProperty} => _{masterProperty};
-    [SerializeField]
-    private List<{masterName}> _{masterProperty} = new List<{masterName}>();
-
-
-    public void SetData(string[] data)
-    {{
-        {setDataCode}
-    }}
-
-    private int GetPrime(int value, int length)
-    {{
-        var _value = value;
-        while (_value >= length)
-        {{
-            _value -= length;
-        }}
-        return _value;
-    }}
-
-    private void OutputParseErrorLog(string s, string type)
-    {{
-        Debug.LogError(($""MasterLoaderInfo: could not cast {{s}} to {{type}}.""));
-    }}
-}}";
+                var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
+                var masterCode = GenerateMasterCode(masterName, Master, masterProperty, nameSpace, setDataCode);
 
                 var rowCsPath = $"{csPath}{masterName}{_CS}";
                 var masterCsPath = $"{csPath}{masterName}{Master}{_CS}";
@@ -333,6 +274,76 @@ public class {masterName}{Master} : ScriptableObject
                 $"{GetBaseIndent(1)}{{{valuesString}" +
                 $"{GetBaseIndent(1)}}}";
             }
+        }
+
+        private static string GenerateMasterFunctionCode(string masterName, string masterProperty, string[] valueList, int length, string parameterCode)
+        {
+            return
+            $"{GetBaseIndent(3)}var dataList = new List<{masterName}>()" +
+            $"{GetBaseIndent(3)}var {masterProperty} = new {masterName}{{}}" +
+            $"{GetBaseIndent(3)}var doneIndex = 0;" +
+            $"{GetBaseIndent(3)}for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
+            $"{GetBaseIndent(3)}{{" +
+            $"{GetBaseIndent(3)}{_TAB}var isDone = false;" +
+            $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0 || doneIndex >= {length})" +
+            $"{GetBaseIndent(3)}{_TAB}{{" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}Debug.Log(\"new Instance\");" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}Debug.Log(valueIndex);" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}{masterProperty} = new {masterName}{{}};" +
+            $"{GetBaseIndent(3)}{_TAB}}}" +
+            $"{GetBaseIndent(3)}{_TAB}for(var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
+            $"{GetBaseIndent(3)}{_TAB}{{" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}if(isDone)" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}{{" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}{_TAB}continue;" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}}}" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}{parameterCode}" +
+            $"{GetBaseIndent(3)}{_TAB}}}" +
+            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length} - 1)" +
+            $"{GetBaseIndent(3)}{_TAB}{{" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add({masterProperty});" +
+            $"{GetBaseIndent(3)}{_TAB}}}" +
+            $"{GetBaseIndent(3)}}}" +
+            $"{GetBaseIndent(3)}_{masterProperty} = dataList;";
+        }
+
+        private static string GenerateMasterCode(string masterName, string Master, string masterProperty, string nameSpace, string setDataCode)
+        {
+            return
+            $"using UnityEngine;{_LINE}" +
+            $"using System.Collections.Generic;{_LINE}" +
+            $"using System;{_LINE}{_LINE}" +
+            $"namespace {nameSpace}{_LINE}" +
+            $"{{" +
+            $"{GetBaseIndent(1)}[CreateAssetMenu]{_LINE}" +
+            $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
+            $"{GetBaseIndent(1)}{{" +
+            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {masterProperty} => _{masterProperty};" +
+            $"{GetBaseIndent(1)}{_TAB}[SerializeField]" +
+            $"{GetBaseIndent(1)}{_TAB}private List<{masterName}> _{masterProperty} = new List<{masterName}>();{_LINE}" +
+
+            $"{GetBaseIndent(1)}{_TAB}public void SetData(string[] data)" +
+            $"{GetBaseIndent(1)}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}{setDataCode}" +
+            $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
+
+            $"{GetBaseIndent(1)}{_TAB}private int GetPrime(int value, int length)" +
+            $"{GetBaseIndent(1)}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}var _value = value;" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}while (_value >= length)" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}_value -= length;" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}}}" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}return _value;" +
+            $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
+
+            $"{GetBaseIndent(1)}{_TAB}private void OutputParseErrorLog(string s, string type)" +
+            $"{GetBaseIndent(1)}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
+            $"{GetBaseIndent(1)}{_TAB}}}" +
+            $"{GetBaseIndent(1)}}}" +
+            $"}}";
         }
 
         private static string GetBaseIndent(int num = 4)
