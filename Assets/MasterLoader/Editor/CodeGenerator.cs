@@ -72,12 +72,12 @@ namespace MasterLoader
                     var comments = commentList[i].Split('\n');
                     for (var row = 0; row < comments.Length; row++)
                     {
-                        comment += $"{_TAB}{_TAB}/// {comments[row]}{_LINE}";
+                        comment += $"{GetBaseIndent(2)}/// {comments[row]}";
                     }
                     comment = 
-                        $"{_TAB}/// <summary>{_LINE}" +
-                        $"{_TAB}{comment}" +
-                        $"{_TAB}/// </summary>{_LINE}";
+                        $"{GetBaseIndent(2)}/// <summary>" +
+                        $"{comment}" +
+                        $"{GetBaseIndent(2)}/// </summary>";
                 }
 
                 var parameterString = string.Empty;
@@ -90,19 +90,19 @@ namespace MasterLoader
                     parameterString = $"{ typeList[i]} { parameterList[i]}";
                 }
                 body +=
-                    $"{_TAB}{comment}" +
-                    $"{_TAB}public {parameterString};{_LINE}";
+                    $"{GetBaseIndent(2)}{comment}" +
+                    $"{GetBaseIndent(2)}public {parameterString};";
             }
 
             var rowCode =
-                "using System;" +
+                $"using System;{_LINE}" +
                 $"namespace {_NAMESPACE}{_LINE}" +
-                $"{{{_LINE}{_LINE}" +
-                $"{_TAB}[Serializable]{_LINE}" +
-                $"{_TAB}public class {masterName}{_LINE}" +
-                $"{_TAB}{{" +
-                $"{_TAB}{_TAB}{body}" +
-                $"{_TAB}}}{_LINE}" +
+                $"{{" +
+                $"{GetBaseIndent(1)}[Serializable]" +
+                $"{GetBaseIndent(1)}public class {masterName}" +
+                $"{GetBaseIndent(1)}{{" +
+                $"{GetBaseIndent(1)}{_TAB}{body}" +
+                $"{GetBaseIndent(1)}}}{_LINE}" +
                 $"}}";
 
             var parameterCode = string.Empty;
@@ -120,7 +120,17 @@ namespace MasterLoader
 
                 AddEnumList(valueList, enumIndexList, typeList, parameterList);
 
-                GenerateEnumCode(rowCode);
+                rowCode =
+                $"using System;{_LINE}" +
+                $"namespace {_NAMESPACE}{_LINE}" +
+                $"{{" +
+                $"{GetBaseIndent(1)}[Serializable]" +
+                $"{GetBaseIndent(1)}public class {masterName}" +
+                $"{GetBaseIndent(1)}{{" +
+                $"{GetBaseIndent(1)}{_TAB}{body}" +
+                $"{GetBaseIndent(1)}}}" +
+                $"{GenerateEnumCode()}{_LINE}" +
+                $"}}";
             }
             catch (Exception e)
             {
@@ -214,6 +224,7 @@ namespace MasterLoader
                         code +=
                         $"{GetBaseIndent(6)}case {parameterIndex}:" +
                         $"{GetBaseIndent(6)}{{" +
+                        $"{GetBaseIndent(6)}{_TAB}var value = data[valueIndex];" +
                         $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
                         $"{GetBaseIndent(6)}}}";
                         break;
@@ -228,7 +239,7 @@ namespace MasterLoader
                         $"{GetBaseIndent(6)}{{" +
                         $"{GetBaseIndent(6)}{_TAB}if(!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))" +
                         $"{GetBaseIndent(6)}{_TAB}{{" +
-                        $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], {type});" +
+                        $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
                         $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
                         $"{GetBaseIndent(6)}{_TAB}}}" +
                         $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
@@ -253,11 +264,12 @@ namespace MasterLoader
             $"{GetBaseIndent(5)}}}";
         }
 
-        private static void GenerateEnumCode(string rowCode)
+        private static string GenerateEnumCode()
         {
+            var code = string.Empty;
             if (EnumValues.Count < 1)
             {
-                return;
+                return code;
             }
             foreach (var ev in EnumValues)
             {
@@ -269,18 +281,19 @@ namespace MasterLoader
                     $"{GetBaseIndent(2)}{ev.ValueList[vIndex]},";
                     Debug.Log($"{ev.ValueList[vIndex]}");
                 }
-                rowCode += $"{_LINE}" +
+                code += $"{_LINE}" +
                 $"{GetBaseIndent(1)}public enum {ev.Parameter.ToUpper()}" +
                 $"{GetBaseIndent(1)}{{{valuesString}" +
                 $"{GetBaseIndent(1)}}}";
             }
+            return code;
         }
 
         private static string GenerateMasterFunctionCode(string masterName, string masterProperty, string[] valueList, int length, string parameterCode)
         {
             return
-            $"{GetBaseIndent(3)}var dataList = new List<{masterName}>()" +
-            $"{GetBaseIndent(3)}var {masterProperty} = new {masterName}{{}}" +
+            $"{GetBaseIndent(3)}var dataList = new List<{masterName}>();" +
+            $"{GetBaseIndent(3)}var {masterProperty} = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}var doneIndex = 0;" +
             $"{GetBaseIndent(3)}for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
             $"{GetBaseIndent(3)}{{" +
@@ -316,7 +329,7 @@ namespace MasterLoader
             $"using System;{_LINE}{_LINE}" +
             $"namespace {nameSpace}{_LINE}" +
             $"{{" +
-            $"{GetBaseIndent(1)}[CreateAssetMenu]{_LINE}" +
+            $"{GetBaseIndent(1)}[CreateAssetMenu]" +
             $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
             $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {masterProperty} => _{masterProperty};" +
@@ -325,7 +338,7 @@ namespace MasterLoader
 
             $"{GetBaseIndent(1)}{_TAB}public void SetData(string[] data)" +
             $"{GetBaseIndent(1)}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}{setDataCode}" +
+            $"{_TAB}{_TAB}{_TAB}{setDataCode}" +
             $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
 
             $"{GetBaseIndent(1)}{_TAB}private int GetPrime(int value, int length)" +
@@ -343,7 +356,7 @@ namespace MasterLoader
             $"{GetBaseIndent(1)}{_TAB}{_TAB}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
             $"{GetBaseIndent(1)}{_TAB}}}" +
             $"{GetBaseIndent(1)}}}" +
-            $"}}";
+            $"{_LINE}}}";
         }
 
         private static string GetBaseIndent(int num = 4)
@@ -359,10 +372,10 @@ namespace MasterLoader
         private static string GetInputCode(string masterProperty, string parameter)
         {
             return
-            $"{_TAB}{masterProperty}.{parameter} = value;" +
-            $"{_TAB}isDone = true;" +
-            $"{_TAB}doneIndex++;" +
-            $"{_TAB}continue;";
+            $"{GetBaseIndent(7)}{masterProperty}.{parameter} = value;" +
+            $"{GetBaseIndent(7)}isDone = true;" +
+            $"{GetBaseIndent(7)}doneIndex++;" +
+            $"{GetBaseIndent(7)}continue;";
         }
 
         private static string GetSwitchCode(string type, string masterProperty, string parameter, int parameterIndex)
@@ -370,9 +383,9 @@ namespace MasterLoader
             return
             $"{GetBaseIndent(6)}case {parameterIndex}:" +
             $"{GetBaseIndent(6)}{{" +
-            $"{GetBaseIndent(6)}{_TAB}if({type}.TryParse(data[valueIndex], out var value))" +
+            $"{GetBaseIndent(6)}{_TAB}if(!{type}.TryParse(data[valueIndex], out var value))" +
             $"{GetBaseIndent(6)}{_TAB}{{" +
-            $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], {type});" +
+            $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
             $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
             $"{GetBaseIndent(6)}{_TAB}}}" +
             $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
