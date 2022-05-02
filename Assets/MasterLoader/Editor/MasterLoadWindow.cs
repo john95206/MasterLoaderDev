@@ -23,7 +23,7 @@ namespace MasterLoader
 
         private void OnEnable()
         {
-            var json = EditorPrefs.GetString(MasterLoader.ConfigKey);
+            var json = EditorPrefs.GetString(MasterLoader.Key());
             if(json == string.Empty)
             {
                 MasterLoader.ConfigData = new MasterLoader.Config

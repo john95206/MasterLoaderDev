@@ -30,6 +30,10 @@ namespace MasterLoader
         }
 
         public const string ConfigKey = "MasterLoaderConfig";
+        public static string Key()
+        {
+            return ConfigKey + Application.productName;
+        }
         public static Config ConfigData;
 
         public const string Master = "Master";
@@ -66,7 +70,7 @@ namespace MasterLoader
                 return;
             }
 
-            var json = EditorPrefs.GetString(ConfigKey);
+            var json = EditorPrefs.GetString(Key());
             if (json == string.Empty)
             {
                 ConfigData = new Config
@@ -281,8 +285,8 @@ namespace MasterLoader
 
         public static void SaveConfig()
         {
-            EditorPrefs.SetString(ConfigKey, JsonUtility.ToJson(ConfigData));
-            ConfigData = JsonUtility.FromJson<Config>(EditorPrefs.GetString(ConfigKey));
+            EditorPrefs.SetString(Key(), JsonUtility.ToJson(ConfigData));
+            ConfigData = JsonUtility.FromJson<Config>(EditorPrefs.GetString(Key()));
         }
 
         public static void ResetCreateAllConfig()
