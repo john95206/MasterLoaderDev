@@ -66,8 +66,9 @@ namespace MasterLoader
             var body = string.Empty;
             for (var i = 0; i < typeList.Length; i++)
             {
+                var parameter = string.Empty;
                 var comment = string.Empty;
-                if (commentList[i] != string.Empty)
+                if (!string.IsNullOrEmpty(commentList[i]))
                 {
                     var comments = commentList[i].Split('\n');
                     for (var row = 0; row < comments.Length; row++)
@@ -75,9 +76,9 @@ namespace MasterLoader
                         comment += $"{GetBaseIndent(2)}/// {comments[row]}";
                     }
                     comment = 
-                        $"{GetBaseIndent(2)}/// <summary>" +
+                        $"{_TAB}{_TAB}/// <summary>" +
                         $"{comment}" +
-                        $"{GetBaseIndent(2)}/// </summary>";
+                        $"{GetBaseIndent(2)}/// </summary>{_LINE}";
                 }
 
                 var parameterString = string.Empty;
@@ -89,9 +90,11 @@ namespace MasterLoader
                 {
                     parameterString = $"{ typeList[i]} { parameterList[i]}";
                 }
-                body +=
-                    $"{GetBaseIndent(2)}{comment}" +
-                    $"{GetBaseIndent(2)}public {parameterString};";
+                parameter =
+                    _LINE +
+                    $"{comment}" +
+                    $"{_TAB}{_TAB}public {parameterString};";
+                body += parameter;
             }
 
             var rowCode =
@@ -101,7 +104,7 @@ namespace MasterLoader
                 $"{GetBaseIndent(1)}[Serializable]" +
                 $"{GetBaseIndent(1)}public class {masterName}" +
                 $"{GetBaseIndent(1)}{{" +
-                $"{GetBaseIndent(1)}{_TAB}{body}" +
+                $"{body}" +
                 $"{GetBaseIndent(1)}}}{_LINE}" +
                 $"}}";
 
