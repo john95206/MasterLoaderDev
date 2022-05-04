@@ -18,10 +18,11 @@ namespace MasterLoader
             public List<string> ValueList = new List<string>();
         }
 
+        public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
         private static List<EnumValue> EnumValues = new List<EnumValue>();
 
         private const string _NAMESPACE = "MasterLoader";
-        private const string _CS = ".cs";
+        public const string CS = ".cs";
         private const string _TAB = "\t";
         private const string _LINE = "\n";
 
@@ -43,21 +44,19 @@ namespace MasterLoader
             var parameterList = result.Parameter;
             var valueList = result.ValueList;
 
-            var csPath = "Assets/MasterLoader/Scripts/Generated/";
-            masterPath = "Assets/MasterLoader/Resources/Master/";
             var masterProperty = $"{ masterName }List";
 
-            if (!Directory.Exists("Assets/MasterLoader/Scripts/Generated"))
+            if (!Directory.Exists(CS_PATH))
             {
-                Directory.CreateDirectory("Assets/MasterLoader/Scripts/Generated");
+                Directory.CreateDirectory(CS_PATH);
             }
-            if (!Directory.Exists(csPath))
+            if (!Directory.Exists(CS_PATH))
             {
-                Directory.CreateDirectory(csPath);
+                Directory.CreateDirectory(CS_PATH);
             }
-            if (!Directory.Exists("Assets/MasterLoader/Resources"))
+            if (!Directory.Exists(masterPath))
             {
-                Directory.CreateDirectory("Assets/MasterLoader/Resources");
+                Directory.CreateDirectory(masterPath);
             }
             if (!Directory.Exists(masterPath))
             {
@@ -148,8 +147,8 @@ namespace MasterLoader
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, Master, masterProperty, nameSpace, setDataCode);
 
-                var rowCsPath = $"{csPath}{masterName}{_CS}";
-                var masterCsPath = $"{csPath}{masterName}{Master}{_CS}";
+                var rowCsPath = $"{CS_PATH}{masterName}{CS}";
+                var masterCsPath = $"{CS_PATH}{masterName}{Master}{CS}";
 
                 using (var sw = new StreamWriter(rowCsPath, false, Encoding.UTF8))
                 {
