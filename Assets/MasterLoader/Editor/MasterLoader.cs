@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using UnityEditor.Compilation;
 
 namespace MasterLoader
 {
@@ -60,6 +61,8 @@ namespace MasterLoader
         /// </summary>
         public static bool IsEditable = false;
 
+        private static string _masterName = string.Empty;
+
         /// <summary>
         /// アプリ起動時に自動でScriptableObjectを更新する
         /// </summary>
@@ -108,9 +111,8 @@ namespace MasterLoader
         /// スプレッドシートからマスタを取得する
         /// </summary>
         /// <param name="masterName">取得するマスタ名</param>
-        /// <param name="done">マスタ取得時に起こしたいイベント</param>
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
-        public static bool LoadMaster(string masterName, Action done = null)
+        public static bool LoadMaster(string masterName)
         {
             var url = $"{api}function=LoadMaster&{sheetName}{masterName}&{urlName}{ConfigData.SheetUrl}";
 
@@ -179,6 +181,69 @@ namespace MasterLoader
             {
                 EditorUtility.ClearProgressBar();
             }
+        }
+
+        public static bool CreateMaster(string masterName)
+        {
+            if (!LoadMaster(masterName))
+            {
+                return false;
+            }
+
+            _masterName = masterName;
+
+            Debug.Log("MasterLoader Info: Now Compiling...");
+
+            EditorApplication.update += WaitCompiled;
+            return true;
+        }
+
+        private static void WaitCompiled()
+        {
+            Debug.Log("update");
+            if (EditorApplication.isCompiling)
+            {
+                return;
+            }
+            if (EditorUtility.scriptCompilationFailed)
+            {
+                Debug.LogError("MasterLoader Info: Creating Master has canceled.");
+            }
+            else
+            {
+                OnCreateMaster(_masterName);
+            }
+            _masterName = string.Empty;
+            EditorApplication.update -= WaitCompiled;
+        }
+
+        private static void OnCreateMaster(string masterName)
+        {
+            var assetPath = $"{path}{masterName}.asset";
+            var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
+            if (soMaster == null)
+            {
+                Debug.Log("MasterLoader Info: Creating MasterData...");
+                soMaster = CreateInstance($"{masterName}{Master}");
+                AssetDatabase.CreateAsset(soMaster, assetPath);
+            }
+            var method = soMaster.GetType().GetMethod("SetData");
+
+            try
+            {
+                var valueList = JsonUtility.FromJson<Base>(ConfigData.CodeJson).ValueList;
+                method.Invoke(soMaster, new object[] { valueList });
+            }
+            catch (Exception ex)
+            {
+                Debug.Log(ex.Message);
+                return;
+            }
+            EditorUtility.SetDirty(soMaster);
+
+            Debug.Log($"MasterLoader Info: {Master} Completely Created!");
+            ConfigData._AllCurrentIndex++;
+            SaveConfig();
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
@@ -259,8 +324,9 @@ namespace MasterLoader
                             {
                                 Debug.LogAssertion(data.Alerts[i]);
                             }
+                            return false;
                         }
-                        if(data.Masters.Length < 1)
+                        else if(data.Masters.Length < 1)
                         {
                             Debug.LogError("MasterLoader Info: Loadable master is nothing. Please fix sheet problems.");
                             return false;

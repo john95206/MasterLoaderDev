@@ -7,8 +7,6 @@ namespace MasterLoader
     {
         private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
-        private bool _IsCompiling = false;
-        private bool _IsWaitingGet = false;
         private string _currentMasterName = "";
         private string driveUrl = string.Empty;
         private string sheetUrl = string.Empty;
@@ -149,13 +147,12 @@ namespace MasterLoader
                         {
                             configData.SheetUrl = sheetUrl;
                             configData.IsFetched = true;
-                            MasterLoader.SaveConfig();
                         }
                         else
                         {
                             configData.IsFetched = false;
-                            MasterLoader.SaveConfig();
                         }
+                        MasterLoader.SaveConfig();
                     }
                 }
             }
@@ -189,7 +186,7 @@ namespace MasterLoader
                 var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
                 if (createMasterButton)
                 {
-                    _IsWaitingGet = MasterLoader.LoadMaster(_currentMasterName);
+                    MasterLoader.CreateMaster(_currentMasterName);
                 }
 
                 var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
@@ -204,38 +201,8 @@ namespace MasterLoader
 
                     if (createAllButton)
                     {
-                        configData.IsAll = true;
-                        MasterLoader.SaveConfig();
-                    }
-                }
-                else
-                {
-                    if (_IsCompiling || _IsWaitingGet)
-                    {
-                        Debug.Log($"Compiling: {_IsCompiling}");
-                        Debug.Log($"WaitingGet: {_IsWaitingGet}");
-                    }
-                    else if(configData.AllCurrentIndex > configData._AllCurrentIndex)
-                    {
-                    }
-                    else if(configData.AllCurrentIndex < configData.Masters.Length)
-                    {
-                        var index = configData.AllCurrentIndex;
-                        configData.AllCurrentIndex++;
-                        Debug.Log($"LoadIndex++: {configData.AllCurrentIndex}");
-                        MasterLoader.SaveConfig();
-                        Debug.Log($"LoadMasterIndex: {index}");
-                        _currentMasterName = configData.Masters[index];
-                        if (!MasterLoader.LoadMaster(_currentMasterName))
-                        {
-                            Debug.Log("Master Loader Info: loading has cancelled");
-                            MasterLoader.ResetCreateAllConfig();
-                        }
-                    }
-                    else if(configData.AllCurrentIndex == configData.Masters.Length)
-                    {
-                        Debug.Log("All Create has Done");
-                        MasterLoader.ResetCreateAllConfig();
+                        // configData.IsAll = true;
+                        // MasterLoader.SaveConfig();
                     }
                 }
 
@@ -250,46 +217,6 @@ namespace MasterLoader
             }
             MasterLoader.IsAutoUpdateEnabled = GUILayout.Toggle(MasterLoader.IsAutoUpdateEnabled, "Enable updating masters");
             _isAuto = MasterLoader.IsAutoUpdateEnabled;
-
-            if (EditorApplication.isCompiling)
-            {
-                if (!_IsCompiling && _IsWaitingGet)
-                {
-                    Debug.Log("MasterLoader Info: Now Compiling...");
-                    _IsCompiling = true;
-                }
-            }
-            if (_IsCompiling || configData.IsAll)
-            {
-                if (!EditorApplication.isCompiling)
-                {
-                    var assetPath = $"{MasterLoader.path}{_currentMasterName}.asset";
-                    var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
-                    if (soMaster == null)
-                    {
-                        Debug.Log("MasterLoader Info: Creating MasterData...");
-                        soMaster = CreateInstance($"{_currentMasterName}{MasterLoader.Master}");
-                        AssetDatabase.CreateAsset(soMaster, assetPath);
-                    }
-                    var method = soMaster.GetType().GetMethod("SetData");
-
-                    try
-                    {
-                        var valueList = JsonUtility.FromJson<Base>(configData.CodeJson).ValueList;
-                        method.Invoke(soMaster, new object[] { valueList });
-                    }
-                    finally
-                    {
-                        _IsCompiling = false;
-                        _IsWaitingGet = false;
-                    }
-                    EditorUtility.SetDirty(soMaster);
-
-                    Debug.Log($"MasterLoader Info: {MasterLoader.Master} Completely Created!");
-                    configData._AllCurrentIndex++;
-                    MasterLoader.SaveConfig();
-                }
-            }
         }
     }
 }
