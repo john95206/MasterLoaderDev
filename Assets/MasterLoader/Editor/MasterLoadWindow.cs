@@ -164,6 +164,12 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
+            if (EditorUtility.scriptCompilationFailed)
+            {
+                EditorGUILayout.LabelField("Please fix all compile error.", GUILayout.Width(200));
+                return;
+            }
+
             if (configData.IsFetched)
             {
                 configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
