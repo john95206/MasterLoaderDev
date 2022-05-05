@@ -21,25 +21,7 @@ namespace MasterLoader
 
         private void OnEnable()
         {
-            var json = EditorPrefs.GetString(MasterLoader.Key());
-            if(json == string.Empty)
-            {
-                MasterLoader.ConfigData = new MasterLoader.Config
-                {
-                    SheetUrl = string.Empty,
-                    IsAuto = false,
-                    IsFetched = false,
-                    SheetIndex = 0,
-                    CodeJson = string.Empty,
-                    IsAll = false,
-                    AllCurrentIndex = 0
-                };
-                Debug.Log("MasterLoader Info: Initialized");
-            }
-            else
-            {
-                MasterLoader.ConfigData = JsonUtility.FromJson<MasterLoader.Config>(json);
-            }
+            MasterLoader.UpdateConfig();
         }
 
         private void OnGUI()

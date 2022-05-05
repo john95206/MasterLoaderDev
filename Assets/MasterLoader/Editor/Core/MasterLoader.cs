@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using System;
-using System.Collections.Generic;
-using UnityEditor.Compilation;
 
 namespace MasterLoader
 {
@@ -13,55 +12,27 @@ namespace MasterLoader
     [InitializeOnLoad]
     public class MasterLoader : Editor
     {
-        [System.Serializable]
-        public class Config
-        {
-            public string DriveUrl = string.Empty;
-            public string SheetUrl = string.Empty;
-            public bool IsFetched = false;
-            public int SheetIndex = 0;
-            public bool IsAuto = false;
-            public bool IsAll = false;
-            public int AllCurrentIndex = 0;
-            public int _AllCurrentIndex = 0;
-            public string CodeJson = string.Empty;
-            public string[] Masters;
-            public string CurrentMasterName = string.Empty;
-            public string[] Alerts;
-        }
-
-        public const string ConfigKey = "MasterLoaderConfig";
-        public static string Key()
-        {
-            return ConfigKey + Application.productName;
-        }
         public static Config ConfigData;
 
-        public const string Master = "Master";
-        private const string api =
+        private const string _CONFIG_PATH = "Confing";
+        public const string MASTER = "Master";
+        private const string _API_URL =
             "https://script.google.com/macros/s/AKfycbwjx-pDNW89Hzi0SV_hGHzVhOMt2_v6K6r4S9Txd_JTuiilzxjHOqjwo3IYcm7PnVWGZQ/exec?";
-        private const string urlName = "url=";
+        private const string _URL = "url=";
         /// <summary>
         /// doGet時の独自変数
         /// 読み込むシートの判断用
         /// </summary>
-        private const string sheetName = "sheetName=";
+        private const string _SHEET_NAME = "sheetName=";
         /// <summary>
         /// マスタを配置するパス。ResoucesディレクトリとMasterディレクトリをあらかじめ作成しておく
         /// </summary>
-        public const string path = "Assets/MasterLoader/Resources/Master/";
+        public const string PATH = "Assets/MasterLoader/Resources/Master/";
 
         /// <summary>
         /// マスタ自動更新するかどうか
         /// </summary>
         public static bool IsAutoUpdateEnabled = false;
-
-        /// <summary>
-        /// ローカルでマスタ編集できるかどうか
-        /// </summary>
-        public static bool IsEditable = false;
-
-        private static string _masterName = string.Empty;
 
         /// <summary>
         /// アプリ起動時に自動でScriptableObjectを更新する
@@ -73,24 +44,7 @@ namespace MasterLoader
                 return;
             }
 
-            var json = EditorPrefs.GetString(Key());
-            if (json == string.Empty)
-            {
-                ConfigData = new Config
-                {
-                    SheetUrl = string.Empty,
-                    IsAuto = false,
-                    IsFetched = false,
-                    SheetIndex = 0,
-                    CodeJson = string.Empty,
-                    CurrentMasterName = string.Empty
-                };
-                Debug.Log("MasterLoader Info: Initialized");
-            }
-            else
-            {
-                ConfigData = JsonUtility.FromJson<Config>(json);
-            }
+            UpdateConfig();
             //// ゲームプレビュー終了時に自動でScriptableObjectを更新する
             EditorApplication.playModeStateChanged += (state) =>
             {
@@ -112,9 +66,14 @@ namespace MasterLoader
         /// </summary>
         /// <param name="masterName">取得するマスタ名</param>
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
-        public static bool LoadMaster(string masterName)
+        private static bool LoadMaster(string masterName)
         {
-            var url = $"{api}function=LoadMaster&{sheetName}{masterName}&{urlName}{ConfigData.SheetUrl}";
+            if (!GetSheets(ConfigData.SheetUrl))
+            {
+                return false;
+            }
+
+            var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl}";
 
             try
             {
@@ -156,7 +115,7 @@ namespace MasterLoader
                             ConfigData.CodeJson = json;
                             ConfigData.CurrentMasterName = masterName;
                             SaveConfig();
-                            var hasSucceced = CodeGenerator.Generate(masterName, path, Master, result);
+                            var hasSucceced = CodeGenerator.Generate(masterName, PATH, MASTER, result);
                             if (hasSucceced)
                             {
                                 Debug.Log($"MasterLoader Info: {masterName} has Loaded");
@@ -190,41 +149,32 @@ namespace MasterLoader
                 return false;
             }
 
-            _masterName = masterName;
-
+            ConfigData.CurrentMasterName = masterName;
+            ConfigData.WaitCreateMaster = true;
+            Debug.Log(ConfigData.WaitCreateMaster);
             Debug.Log("MasterLoader Info: Now Compiling...");
-
-            EditorApplication.update += WaitCompiled;
+            SaveConfig();
             return true;
         }
 
-        private static void WaitCompiled()
+        [DidReloadScripts]
+        private static void OnCreateMaster()
         {
-            Debug.Log("update");
-            if (EditorApplication.isCompiling)
+            UpdateConfig();
+            Debug.Log(ConfigData.WaitCreateMaster);
+            if (!ConfigData.WaitCreateMaster)
             {
+                Debug.Log("OnCompiled");
                 return;
             }
-            if (EditorUtility.scriptCompilationFailed)
-            {
-                Debug.LogError($"MasterLoader Info: Compile error has detected in {CodeGenerator.CS_PATH}{_masterName}{CodeGenerator.CS}.\nPlease delete this file and check your spreadsheet.");
-            }
-            else
-            {
-                OnCreateMaster(_masterName);
-            }
-            _masterName = string.Empty;
-            EditorApplication.update -= WaitCompiled;
-        }
-
-        private static void OnCreateMaster(string masterName)
-        {
-            var assetPath = $"{path}{masterName}.asset";
+            ConfigData.WaitCreateMaster = false;
+            SaveConfig();
+            var assetPath = $"{PATH}{ConfigData.CurrentMasterName}.asset";
             var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
             if (soMaster == null)
             {
                 Debug.Log("MasterLoader Info: Creating MasterData...");
-                soMaster = CreateInstance($"{masterName}{Master}");
+                soMaster = CreateInstance($"{ConfigData.CurrentMasterName}{MASTER}");
                 AssetDatabase.CreateAsset(soMaster, assetPath);
             }
             var method = soMaster.GetType().GetMethod("SetData");
@@ -241,14 +191,14 @@ namespace MasterLoader
             }
             EditorUtility.SetDirty(soMaster);
 
-            Debug.Log($"MasterLoader Info: {Master} Completely Created!");
+            Debug.Log($"MasterLoader Info: {MASTER} Completely Created!");
             ConfigData._AllCurrentIndex++;
             SaveConfig();
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
         {
-            var url = $"{api}function=CreateSheet&masterName={masterName}&id={id}&sheetName={masterName}";
+            var url = $"{_API_URL}function=CreateSheet&masterName={masterName}&id={id}&sheetName={masterName}";
 
             try
             {
@@ -294,7 +244,7 @@ namespace MasterLoader
 
         public static bool GetSheets(string sheetUrl)
         {
-            var url = $"{api}function=GetSheets&{urlName}={sheetUrl}";
+            var url = $"{_API_URL}function=GetSheets&{_URL}={sheetUrl}";
 
             try
             {
@@ -335,6 +285,7 @@ namespace MasterLoader
                         {
                             Debug.Log("MasterLoader Info: Getting Sheet has completed.");
                             ConfigData.Masters = data.Masters;
+                            SaveConfig();
                             return true;
                         }
                     }
@@ -351,8 +302,30 @@ namespace MasterLoader
 
         public static void SaveConfig()
         {
-            EditorPrefs.SetString(Key(), JsonUtility.ToJson(ConfigData));
-            ConfigData = JsonUtility.FromJson<Config>(EditorPrefs.GetString(Key()));
+            GetConfigObject().SetData(ConfigData);
+        }
+
+        private static ConfigObject GetConfigObject()
+        {
+            var obj = Resources.Load<ConfigObject>(_CONFIG_PATH);
+            if (obj == null)
+            {
+                var asset = CreateInstance<ConfigObject>();
+                AssetDatabase.CreateAsset(asset, _CONFIG_PATH);
+                asset.hideFlags = HideFlags.NotEditable;
+                obj = asset;
+            }
+            return obj;
+        }
+
+        public static Config LoadConfig()
+        {
+            return GetConfigObject().Config;
+        }
+
+        public static void UpdateConfig()
+        {
+            ConfigData = LoadConfig();
         }
 
         public static void ResetCreateAllConfig()
