@@ -50,14 +50,6 @@ namespace MasterLoader
             {
                 Directory.CreateDirectory(CS_PATH);
             }
-            if (!Directory.Exists(CS_PATH))
-            {
-                Directory.CreateDirectory(CS_PATH);
-            }
-            if (!Directory.Exists(masterPath))
-            {
-                Directory.CreateDirectory(masterPath);
-            }
             if (!Directory.Exists(masterPath))
             {
                 Directory.CreateDirectory(masterPath);
