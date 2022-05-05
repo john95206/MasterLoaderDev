@@ -68,11 +68,6 @@ namespace MasterLoader
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
         private static bool LoadMaster(string masterName)
         {
-            if (!GetSheets(ConfigData.SheetUrl))
-            {
-                return false;
-            }
-
             var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl}";
 
             try
@@ -151,9 +146,13 @@ namespace MasterLoader
 
             ConfigData.CurrentMasterName = masterName;
             ConfigData.WaitCreateMaster = true;
-            Debug.Log(ConfigData.WaitCreateMaster);
-            Debug.Log("MasterLoader Info: Now Compiling...");
             SaveConfig();
+            if (!EditorApplication.isCompiling)
+            {
+                OnCreateMaster();
+                return true;
+            }
+            Debug.Log("MasterLoader Info: Now Compiling...");
             return true;
         }
 
@@ -161,10 +160,8 @@ namespace MasterLoader
         private static void OnCreateMaster()
         {
             UpdateConfig();
-            Debug.Log(ConfigData.WaitCreateMaster);
             if (!ConfigData.WaitCreateMaster)
             {
-                Debug.Log("OnCompiled");
                 return;
             }
             ConfigData.WaitCreateMaster = false;
