@@ -207,7 +207,7 @@ namespace MasterLoader
             }
             if (EditorUtility.scriptCompilationFailed)
             {
-                Debug.LogError("MasterLoader Info: Creating Master has canceled.");
+                Debug.LogError($"MasterLoader Info: Compile error has detected in {CodeGenerator.CS_PATH}{_masterName}{CodeGenerator.CS}.\nPlease delete this file and check your spreadsheet.");
             }
             else
             {
