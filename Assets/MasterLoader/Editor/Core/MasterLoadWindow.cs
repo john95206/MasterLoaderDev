@@ -33,6 +33,7 @@ namespace MasterLoader
             Loader,
         }
 
+        private DefaultAsset _pathFolder;
         private TabStatus _tabStatus;
         private bool _isDirty = false;
 
@@ -243,7 +244,7 @@ namespace MasterLoader
             var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
             if (createMasterButton)
             {
-                MasterLoader.CreateMaster(_currentMasterName, _masterPath, _nameSpace);
+                MasterLoader.CreateMaster(configData.CurrentMasterName, configData.MasterPath, configData.NameSpace);
             }
 
             DrawUtilityWindow(configData);
@@ -253,6 +254,26 @@ namespace MasterLoader
         {
             // 仕切り線
             GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+
+            EditorGUILayout.Space();
+
+            _nameSpace = EditorGUILayout.TextField("namespace", configData.NameSpace);
+            if(_nameSpace != configData.NameSpace)
+            {
+                configData.NameSpace = _nameSpace;
+                _isDirty = true;
+            }
+
+            EditorGUILayout.Space();
+
+            _pathFolder = (DefaultAsset)EditorGUILayout.ObjectField("Master path", _pathFolder, typeof(DefaultAsset), true);
+            _masterPath = AssetDatabase.GetAssetPath(_pathFolder);
+            if(_masterPath != configData.MasterPath)
+            {
+                configData.MasterPath = _masterPath;
+                _isDirty = true;
+            }
+            EditorGUILayout.LabelField($"Master will be generated to: {configData.MasterPath}");
 
             EditorGUILayout.Space();
 

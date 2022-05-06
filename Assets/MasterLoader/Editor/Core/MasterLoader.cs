@@ -27,10 +27,6 @@ namespace MasterLoader
         /// </summary>
         private const string _SHEET_NAME = "sheetName=";
         /// <summary>
-        /// マスタを配置するパス。ResoucesディレクトリとMasterディレクトリをあらかじめ作成しておく
-        /// </summary>
-        public const string PATH = "Assets/MasterLoader/Resources/Master/";
-        /// <summary>
         /// マスタ自動更新するかどうか
         /// </summary>
         public static bool IsAutoUpdateEnabled = false;
@@ -126,7 +122,7 @@ namespace MasterLoader
 
         private static bool GenerateCode(string masterName, string masterPath, string nameSpace, Base code)
         {
-            return CodeGenerator.Generate(masterName, PATH, nameSpace, code);
+            return CodeGenerator.Generate(masterName, masterPath, nameSpace, code);
         }
 
         public static bool CreateMaster(string masterName, string masterPath, string nameSpace)
@@ -166,7 +162,7 @@ namespace MasterLoader
             }
             ConfigData.WaitCreateMaster = false;
             SaveConfig();
-            var assetPath = $"{PATH}{ConfigData.CurrentMasterName}.asset";
+            var assetPath = $"{ConfigData.MasterPath}{ConfigData.CurrentMasterName}.asset";
             var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
             if (soMaster == null)
             {

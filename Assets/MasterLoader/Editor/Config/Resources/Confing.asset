@@ -14,17 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Config:
     DriveUrl: 
-    SheetUrl: 
-    IsFetched: 0
-    SheetIndex: 0
+    SheetUrl: https://docs.google.com/spreadsheets/d/1ZwYU-osH8fXICy4cFP_QsokN-l826ERJk1CuOjG5D3A/edit#gid=711625210
+    IsFetched: 1
+    SheetIndex: 1
     IsAuto: 0
     IsAll: 0
     AllCurrentIndex: 0
-    _AllCurrentIndex: 0
-    CodeJson: 
-    Masters: []
-    CurrentMasterName: 
+    _AllCurrentIndex: 3
+    CodeJson: '{"Alerts":[],"Parameter":["id","isTrue","ass","bb","e","ee"],"Type":["enum","bool","string","int","enum","enum"],"Comment":["","a","aa","oooooooooooooooooooooooooooooooooooooooooooooo","","aa",""],"ValueList":["a",true,"aaaaa",0,"aa","p","a",true,0,22,"b","b","a",false,"a",56,"c","c","a",false,"null",4,"d","d"]}'
+    Masters:
+    - testMaster
+    - second
+    CurrentMasterName: second
     Alerts: []
-    NameSpace: 
-    MasterPath: 
+    NameSpace: MasterLoader
+    MasterPath: Assets/MasterLoader/Master
     WaitCreateMaster: 0
+    Language: 0

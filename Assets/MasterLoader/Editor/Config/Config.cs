@@ -17,8 +17,8 @@ namespace MasterLoaderConfig
         public string[] Masters;
         public string CurrentMasterName = string.Empty;
         public string[] Alerts;
-        public string NameSpace = string.Empty;
-        public string MasterPath = string.Empty;
+        public string NameSpace = "MasterLoader";
+        public string MasterPath = "Assets/MasterLoader/Master/";
         public bool WaitCreateMaster = false;
         public MasterLoaderLanguage Language;
     }
