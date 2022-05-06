@@ -19,7 +19,7 @@ namespace MasterLoader
         }
 
         public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
-        private static List<EnumValue> EnumValues = new List<EnumValue>();
+        private static List<EnumValue> _enumValues = new List<EnumValue>();
 
         private const string _NAMESPACE = "MasterLoader";
         public const string CS = ".cs";
@@ -177,9 +177,9 @@ namespace MasterLoader
                         var value = valueList[i];
                         Debug.Log(value);
                         var hasExisted = false;
-                        if (EnumValues.Count > 0)
+                        if (_enumValues.Count > 0)
                         {
-                            foreach (var ev in EnumValues)
+                            foreach (var ev in _enumValues)
                             {
                                 hasExisted = ev.Parameter.Equals(parameterList[enumIndex]);
                                 if (!hasExisted)
@@ -197,7 +197,7 @@ namespace MasterLoader
                         }
                         if (!hasExisted)
                         {
-                            EnumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
+                            _enumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
                         }
                     }
                 }
@@ -261,11 +261,11 @@ namespace MasterLoader
         private static string GenerateEnumCode()
         {
             var code = string.Empty;
-            if (EnumValues.Count < 1)
+            if (_enumValues.Count < 1)
             {
                 return code;
             }
-            foreach (var ev in EnumValues)
+            foreach (var ev in _enumValues)
             {
                 Debug.Log($"MasterLoaderInfo: {ev.Parameter} enum generatable.");
                 var valuesString = string.Empty;

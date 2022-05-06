@@ -8,9 +8,9 @@ namespace MasterLoader
         private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
         private string _currentMasterName = "";
-        private string driveUrl = string.Empty;
-        private string sheetUrl = string.Empty;
-        private string masterName = string.Empty;
+        private string _driveUrl = string.Empty;
+        private string _sheetUrl = string.Empty;
+        private string _masterName = string.Empty;
         private int sheetIndex = 0;
 
         [MenuItem("Window/MasterLoader")]
@@ -43,13 +43,13 @@ namespace MasterLoader
 
             configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-            driveUrl = configData.DriveUrl;
+            _driveUrl = configData.DriveUrl;
 
             EditorGUILayout.EndHorizontal();
 
-            var isDriveUrl = driveUrl.StartsWith("https://drive.google.com/drive/");
+            var isDriveUrl = _driveUrl.StartsWith("https://drive.google.com/drive/");
 
-            if (string.IsNullOrEmpty(driveUrl))
+            if (string.IsNullOrEmpty(_driveUrl))
             {
                 EditorGUILayout.LabelField("Enter your drive URL", GUILayout.Width(200));
             }
@@ -59,32 +59,32 @@ namespace MasterLoader
                 _acceptedDriveUrl = false;
             }
             else if (isDriveUrl &&
-                driveUrl.IndexOf("folders") < 0)
+                _driveUrl.IndexOf("folders") < 0)
             {
                 EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(250));
                 _acceptedDriveUrl = false;
             }
-            else if (isDriveUrl && driveUrl.IndexOf("folders") > -1)
+            else if (isDriveUrl && _driveUrl.IndexOf("folders") > -1)
             {
                 _acceptedDriveUrl = true;
                 EditorGUILayout.BeginHorizontal();
 
                 EditorGUILayout.LabelField("Enter your master name", GUILayout.Width(200));
 
-                masterName = EditorGUILayout.TextField(masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
+                _masterName = EditorGUILayout.TextField(_masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
 
                 EditorGUILayout.EndHorizontal();
 
-                if (!string.IsNullOrEmpty(masterName))
+                if (!string.IsNullOrEmpty(_masterName))
                 {
                     EditorGUILayout.Space();
 
                     var createButton = GUILayout.Button("Create", GUILayout.Width(50));
                     if (createButton)
                     {
-                        var idIndex = driveUrl.LastIndexOf('/');
-                        var id = driveUrl.Substring(idIndex + 1);
-                        MasterLoader.CreateSpreadSheet(masterName, id);
+                        var idIndex = _driveUrl.LastIndexOf('/');
+                        var id = _driveUrl.Substring(idIndex + 1);
+                        MasterLoader.CreateSpreadSheet(_masterName, id);
                     }
                 }
             }
@@ -101,17 +101,17 @@ namespace MasterLoader
 
             configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-            sheetUrl = configData.SheetUrl;
+            _sheetUrl = configData.SheetUrl;
 
-            if (sheetUrl != configData.SheetUrl)
+            if (_sheetUrl != configData.SheetUrl)
             {
                 configData.IsFetched = false;
             }
             var isValid = false;
 
-            if(sheetUrl != string.Empty)
+            if(_sheetUrl != string.Empty)
             {
-                if (!sheetUrl.StartsWith("https://docs.google.com/spreadsheets/"))
+                if (!_sheetUrl.StartsWith("https://docs.google.com/spreadsheets/"))
                 {
                     EditorGUILayout.EndHorizontal();
                     EditorGUILayout.LabelField("this URL is not SpreadSheet's one.", GUILayout.Width(200));
@@ -125,9 +125,9 @@ namespace MasterLoader
                     {
                         Undo.RecordObject(this, "url");
                         EditorUtility.SetDirty(this);
-                        if (MasterLoader.GetSheets(sheetUrl))
+                        if (MasterLoader.GetSheets(_sheetUrl))
                         {
-                            configData.SheetUrl = sheetUrl;
+                            configData.SheetUrl = _sheetUrl;
                             configData.IsFetched = true;
                         }
                         else
