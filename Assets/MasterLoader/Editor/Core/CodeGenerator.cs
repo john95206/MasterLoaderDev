@@ -139,7 +139,7 @@ namespace MasterLoader
                 var masterCode = GenerateMasterCode(masterName, Master, masterProperty, nameSpace, setDataCode);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
-                var masterCsPath = $"{CS_PATH}{masterName}{Master}{CS}";
+                var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
 
                 using (var sw = new StreamWriter(rowCsPath, false, Encoding.UTF8))
                 {
