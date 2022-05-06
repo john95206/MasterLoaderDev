@@ -2,7 +2,7 @@
 {
     public static class Localization
     {
-        public const string TAB_GET_STARTED = "GET STARTED";
+        public const string TAB_SHEET_CREATOR = "SHEET CREATOR";
         public const string TAB_LOADER = "LOADER";
 
         public static string TutorialMessage(MasterLoaderLanguage language)

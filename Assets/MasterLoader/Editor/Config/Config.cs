@@ -20,5 +20,6 @@ namespace MasterLoaderConfig
         public string NameSpace = string.Empty;
         public string MasterPath = string.Empty;
         public bool WaitCreateMaster = false;
+        public MasterLoaderLanguage Language;
     }
 }
