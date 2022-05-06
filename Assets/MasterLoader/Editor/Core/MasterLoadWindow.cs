@@ -1,10 +1,39 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using MasterLoaderConfig;
+using System.Linq;
 
 namespace MasterLoader
 {
     public class MasterLoadWindow : EditorWindow
     {
+        private static class Styles
+        {
+            private static GUIContent[] _tabToggles = null;
+            public static GUIContent[] TabToggles
+            {
+                get
+                {
+                    if (_tabToggles == null)
+                    {
+                        _tabToggles = System.Enum.GetNames(typeof(TabStatus)).Select(x => new GUIContent(x)).ToArray();
+                    }
+                    return _tabToggles;
+                }
+            }
+
+            public static readonly GUIStyle TabButtonStyle = "LargeButton";
+
+            public static readonly GUI.ToolbarButtonSize TabButtonSize = GUI.ToolbarButtonSize.Fixed;
+        }
+
+        private enum TabStatus
+        {
+            SheetCreator,
+            Loader,
+        }
+
+        private TabStatus _tabStatus;
         private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
         private string _currentMasterName = "";
@@ -28,21 +57,24 @@ namespace MasterLoader
             MasterLoader.UpdateConfig();
         }
 
-        private bool DrawTabButtons()
+        private void DrawTabButtons()
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                var getStartedButton = GUILayout.Button("GET STARTED", GUILayout.Width(50));
+                // タブを描画する
+                _tabStatus = (TabStatus)GUILayout.Toolbar
+                (
+                    (int)_tabStatus,
+                    Styles.TabToggles,
+                    Styles.TabButtonStyle,
+                    Styles.TabButtonSize
+                );
             }
-            return true;
+            EditorGUILayout.Space();
         }
 
-        private void OnGUI()
+        private void DrawCreatorWindow(Config configData)
         {
-            var configData = MasterLoader.ConfigData;
-
-            EditorGUILayout.Space();
-
             var text = !_acceptedDriveUrl ?
                 "Get start to enter your Google Drive folder URL." :
                 "Accepted Drive URL!";
@@ -50,15 +82,15 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.BeginHorizontal();
+            // drive url field
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("Drive URL", GUILayout.Width(80));
 
-            EditorGUILayout.LabelField("Drive URL", GUILayout.Width(80));
+                configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-            configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
-
-            _driveUrl = configData.DriveUrl;
-
-            EditorGUILayout.EndHorizontal();
+                _driveUrl = configData.DriveUrl;
+            }
 
             var isDriveUrl = _driveUrl.StartsWith(_DRIVE_URL);
 
@@ -80,13 +112,13 @@ namespace MasterLoader
             else if (isDriveUrl && _driveUrl.IndexOf("folders") > -1)
             {
                 _acceptedDriveUrl = true;
-                EditorGUILayout.BeginHorizontal();
+                // mastername field
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Enter your master name", GUILayout.Width(200));
 
-                EditorGUILayout.LabelField("Enter your master name", GUILayout.Width(200));
-
-                _masterName = EditorGUILayout.TextField(_masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
-
-                EditorGUILayout.EndHorizontal();
+                    _masterName = EditorGUILayout.TextField(_masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
+                }
 
                 if (!string.IsNullOrEmpty(_masterName))
                 {
@@ -105,35 +137,47 @@ namespace MasterLoader
             {
                 EditorGUILayout.LabelField("unexpected URL.", GUILayout.Width(120));
             }
+        }
+
+        private void DrawLoaderWindow(Config configData)
+        {
+            var isValid = DrawFetchWindow(configData);
+
+            if ((MasterLoader.ConfigData == null || !isValid) || !configData.IsFetched)
+            {
+                return;
+            }
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.LabelField("Sheet URL", GUILayout.Width(80));
-
-            configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
-
-            _sheetUrl = configData.SheetUrl;
-
-            if (_sheetUrl != configData.SheetUrl)
+            if (EditorUtility.scriptCompilationFailed)
             {
-                configData.IsFetched = false;
+                EditorGUILayout.LabelField("Please fix all compile error.", GUILayout.Width(200));
+                return;
             }
-            var isValid = false;
+            DrawSheetCreateWindow(configData);
 
-            if(_sheetUrl != string.Empty)
+            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+        }
+
+        private bool DrawFetchWindow(Config configData)
+        {
+            var isValid = _sheetUrl.StartsWith("https://docs.google.com/spreadsheets/");
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (!_sheetUrl.StartsWith("https://docs.google.com/spreadsheets/"))
+                EditorGUILayout.LabelField("Sheet URL", GUILayout.Width(80));
+
+                configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+
+                _sheetUrl = configData.SheetUrl;
+
+                if (_sheetUrl != configData.SheetUrl)
                 {
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.LabelField("this URL is not SpreadSheet's one.", GUILayout.Width(200));
+                    configData.IsFetched = false;
                 }
-                else
+                if (isValid)
                 {
-                    isValid = true;
                     var fetchButton = GUILayout.Button("Fetch", GUILayout.Width(80));
-                    EditorGUILayout.EndHorizontal();
                     if (fetchButton)
                     {
                         Undo.RecordObject(this, "url");
@@ -151,24 +195,25 @@ namespace MasterLoader
                     }
                 }
             }
-
-            if((MasterLoader.ConfigData == null || !isValid) || !configData.IsFetched)
+            if (string.IsNullOrEmpty(_sheetUrl))
             {
-                return;
+                return false;
+            }
+            if (!isValid)
+            {
+                EditorGUILayout.LabelField("this URL is not SpreadSheet's one.", GUILayout.Width(200));
+                return false;
             }
 
-            EditorGUILayout.Space();
+            return true;
+        }
 
-            if (EditorUtility.scriptCompilationFailed)
-            {
-                EditorGUILayout.LabelField("Please fix all compile error.", GUILayout.Width(200));
-                return;
-            }
-
+        private void DrawSheetCreateWindow(Config configData)
+        {
             if (configData.IsFetched)
             {
                 configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
-                if(sheetIndex != configData.SheetIndex)
+                if (sheetIndex != configData.SheetIndex)
                 {
                     MasterLoader.SaveConfig();
                 }
@@ -190,34 +235,59 @@ namespace MasterLoader
                     MasterLoader.CreateMaster(_currentMasterName, _masterPath, _nameSpace);
                 }
 
-                var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
-                if (resetAllButton)
-                {
-                    MasterLoader.ResetCreateAllConfig();
-                }
+                DrawUtilityWindow(configData);
+            }
+        }
 
-                if (!configData.IsAll)
-                {
-                    var createAllButton = GUILayout.Button($"Create All Master");
-
-                    if (createAllButton)
-                    {
-                        // configData.IsAll = true;
-                        // MasterLoader.SaveConfig();
-                    }
-                }
-
-                EditorGUILayout.Space();
+        private void DrawUtilityWindow(Config configData)
+        {
+            var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
+            if (resetAllButton)
+            {
+                MasterLoader.ResetCreateAllConfig();
             }
 
-            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+            if (!configData.IsAll)
+            {
+                var createAllButton = GUILayout.Button($"Create All Master");
 
-            if(_isAuto != MasterLoader.IsAutoUpdateEnabled)
+                if (createAllButton)
+                {
+                    // configData.IsAll = true;
+                    // MasterLoader.SaveConfig();
+                }
+            }
+
+            EditorGUILayout.Space();
+
+            if (_isAuto != MasterLoader.IsAutoUpdateEnabled)
             {
                 MasterLoader.SaveConfig();
             }
             MasterLoader.IsAutoUpdateEnabled = GUILayout.Toggle(MasterLoader.IsAutoUpdateEnabled, "Enable updating masters");
             _isAuto = MasterLoader.IsAutoUpdateEnabled;
+        }
+
+        private void OnGUI()
+        {
+            var configData = MasterLoader.ConfigData;
+
+            EditorGUILayout.Space();
+
+            MasterLoader.ConfigData.Language = (MasterLoaderLanguage)EditorGUILayout.EnumPopup("Langage", MasterLoader.ConfigData.Language);
+
+            EditorGUILayout.Space();
+
+            DrawTabButtons();
+
+            if(_tabStatus == TabStatus.SheetCreator)
+            {
+                DrawCreatorWindow(configData);
+            }
+            else
+            {
+                DrawLoaderWindow(configData);
+            }
         }
     }
 }
