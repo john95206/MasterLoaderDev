@@ -325,7 +325,6 @@ namespace MasterLoader
             $"using System;{_LINE}{_LINE}" +
             $"namespace {nameSpace}{_LINE}" +
             $"{{" +
-            $"{GetBaseIndent(1)}[CreateAssetMenu]" +
             $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
             $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {masterProperty} => _{masterProperty};" +

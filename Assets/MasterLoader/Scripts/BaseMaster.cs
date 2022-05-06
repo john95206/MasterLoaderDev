@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace MasterLoader
 {
-    [CreateAssetMenu]
     public class BaseMaster : ScriptableObject
     {
         public List<Base> List;
