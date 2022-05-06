@@ -34,6 +34,8 @@ namespace MasterLoader
         }
 
         private TabStatus _tabStatus;
+        private bool _isDirty = false;
+
         private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
         private string _currentMasterName = "";
@@ -89,7 +91,11 @@ namespace MasterLoader
 
                 configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-                _driveUrl = configData.DriveUrl;
+                if(_driveUrl != configData.DriveUrl)
+                {
+                    _driveUrl = configData.DriveUrl;
+                    _isDirty = true;
+                }
             }
 
             var isDriveUrl = _driveUrl.StartsWith(_DRIVE_URL);
@@ -169,12 +175,11 @@ namespace MasterLoader
 
                 configData.SheetUrl = EditorGUILayout.TextField(configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-                _sheetUrl = configData.SheetUrl;
-
-                if (_sheetUrl != configData.SheetUrl)
+                if(_sheetUrl != configData.SheetUrl)
                 {
-                    configData.IsFetched = false;
+                    _sheetUrl = configData.SheetUrl;
                 }
+
                 if (isValid)
                 {
                     var fetchButton = GUILayout.Button("Fetch", GUILayout.Width(80));
@@ -191,8 +196,12 @@ namespace MasterLoader
                         {
                             configData.IsFetched = false;
                         }
-                        MasterLoader.SaveConfig();
+                        _isDirty = true;
                     }
+                }
+                else
+                {
+                    configData.IsFetched = false;
                 }
             }
             if (string.IsNullOrEmpty(_sheetUrl))
@@ -210,37 +219,43 @@ namespace MasterLoader
 
         private void DrawSheetCreateWindow(Config configData)
         {
-            if (configData.IsFetched)
+            if (!configData.IsFetched)
             {
-                configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
-                if (sheetIndex != configData.SheetIndex)
-                {
-                    MasterLoader.SaveConfig();
-                }
-                sheetIndex = configData.SheetIndex;
-
-                // 仕切り線
-                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-
-                EditorGUILayout.Space();
-
-                if (!configData.IsAll)
-                {
-                    _currentMasterName = configData.Masters[configData.SheetIndex];
-                }
-
-                var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
-                if (createMasterButton)
-                {
-                    MasterLoader.CreateMaster(_currentMasterName, _masterPath, _nameSpace);
-                }
-
-                DrawUtilityWindow(configData);
+                return;
             }
+            configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
+            if (sheetIndex != configData.SheetIndex)
+            {
+                sheetIndex = configData.SheetIndex;
+                _isDirty = true;
+            }
+
+            // 仕切り線
+            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+
+            EditorGUILayout.Space();
+
+            if (!configData.IsAll)
+            {
+                _currentMasterName = configData.Masters[configData.SheetIndex];
+            }
+
+            var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
+            if (createMasterButton)
+            {
+                MasterLoader.CreateMaster(_currentMasterName, _masterPath, _nameSpace);
+            }
+
+            DrawUtilityWindow(configData);
         }
 
         private void DrawUtilityWindow(Config configData)
         {
+            // 仕切り線
+            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+
+            EditorGUILayout.Space();
+
             var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
             if (resetAllButton)
             {
@@ -262,7 +277,6 @@ namespace MasterLoader
 
             if (_isAuto != MasterLoader.IsAutoUpdateEnabled)
             {
-                MasterLoader.SaveConfig();
             }
             MasterLoader.IsAutoUpdateEnabled = GUILayout.Toggle(MasterLoader.IsAutoUpdateEnabled, "Enable updating masters");
             _isAuto = MasterLoader.IsAutoUpdateEnabled;
@@ -288,6 +302,14 @@ namespace MasterLoader
             {
                 DrawLoaderWindow(configData);
             }
+
+            if (!_isDirty)
+            {
+                return;
+            }
+            _isDirty = false;
+            MasterLoader.SaveConfig();
+            Debug.Log("Saved Config");
         }
     }
 }
