@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MasterLoader
+namespace MasterLoaderConfig
 {
     [Serializable]
     public class Config

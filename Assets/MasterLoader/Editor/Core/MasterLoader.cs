@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
+using MasterLoaderConfig;
 
 namespace MasterLoader
 {

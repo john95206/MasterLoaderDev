@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 
-namespace MasterLoader
+namespace MasterLoaderConfig
 {
-    [CreateAssetMenu]
     public class ConfigObject : ScriptableObject
     {
         //[HideInInspector]

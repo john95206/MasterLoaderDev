@@ -15,6 +15,8 @@ namespace MasterLoader
         private string _masterPath = string.Empty;
         private int sheetIndex = 0;
 
+        private const string _DRIVE_URL = "https://drive.google.com/drive/";
+
         [MenuItem("Window/MasterLoader")]
         static void Open()
         {
@@ -24,6 +26,15 @@ namespace MasterLoader
         private void OnEnable()
         {
             MasterLoader.UpdateConfig();
+        }
+
+        private bool DrawTabButtons()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var getStartedButton = GUILayout.Button("GET STARTED", GUILayout.Width(50));
+            }
+            return true;
         }
 
         private void OnGUI()
@@ -49,7 +60,7 @@ namespace MasterLoader
 
             EditorGUILayout.EndHorizontal();
 
-            var isDriveUrl = _driveUrl.StartsWith("https://drive.google.com/drive/");
+            var isDriveUrl = _driveUrl.StartsWith(_DRIVE_URL);
 
             if (string.IsNullOrEmpty(_driveUrl))
             {
