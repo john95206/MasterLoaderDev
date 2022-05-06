@@ -36,9 +36,12 @@ namespace MasterLoader
             return _value;
         }
 
-        public static bool Generate(string masterName, string masterPath, string Master, Base result)
+        public static bool Generate(string masterName, string masterPath, string nameSpace, Base result)
         {
-            var nameSpace = _NAMESPACE;
+            if (string.IsNullOrEmpty(nameSpace))
+            {
+                nameSpace = _NAMESPACE;
+            }
             var typeList = result.Type;
             var commentList = result.Comment;
             var parameterList = result.Parameter;
@@ -136,7 +139,7 @@ namespace MasterLoader
             {
                 var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
-                var masterCode = GenerateMasterCode(masterName, Master, masterProperty, nameSpace, setDataCode);
+                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
                 var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";

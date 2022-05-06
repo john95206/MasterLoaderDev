@@ -11,6 +11,8 @@ namespace MasterLoader
         private string _driveUrl = string.Empty;
         private string _sheetUrl = string.Empty;
         private string _masterName = string.Empty;
+        private string _nameSpace = string.Empty;
+        private string _masterPath = string.Empty;
         private int sheetIndex = 0;
 
         [MenuItem("Window/MasterLoader")]
@@ -174,7 +176,7 @@ namespace MasterLoader
                 var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
                 if (createMasterButton)
                 {
-                    MasterLoader.CreateMaster(_currentMasterName);
+                    MasterLoader.CreateMaster(_currentMasterName, _masterPath, _nameSpace);
                 }
 
                 var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");

@@ -13,6 +13,7 @@ namespace MasterLoader
     public class MasterLoader : Editor
     {
         public static Config ConfigData;
+        private static Base _loadedResult;
 
         private const string _CONFIG_PATH = "Confing";
         public const string MASTER = "Master";
@@ -28,7 +29,6 @@ namespace MasterLoader
         /// マスタを配置するパス。ResoucesディレクトリとMasterディレクトリをあらかじめ作成しておく
         /// </summary>
         public const string PATH = "Assets/MasterLoader/Resources/Master/";
-
         /// <summary>
         /// マスタ自動更新するかどうか
         /// </summary>
@@ -105,23 +105,9 @@ namespace MasterLoader
                             }
                             return false;
                         }
-                        else
-                        {
-                            ConfigData.CodeJson = json;
-                            ConfigData.CurrentMasterName = masterName;
-                            SaveConfig();
-                            var hasSucceced = CodeGenerator.Generate(masterName, PATH, MASTER, result);
-                            if (hasSucceced)
-                            {
-                                Debug.Log($"MasterLoader Info: {masterName} has Loaded");
-                                return true;
-                            }
-                            else
-                            {
-                                Debug.LogError($"MasterLoader Info: {masterName} loading has failed.");
-                                return false;
-                            }
-                        }
+                        _loadedResult = result;
+                        ConfigData.CodeJson = json;
+                        return true;
                     }
                 }
             }
@@ -137,7 +123,12 @@ namespace MasterLoader
             }
         }
 
-        public static bool CreateMaster(string masterName)
+        private static bool GenerateCode(string masterName, string masterPath, string nameSpace, Base code)
+        {
+            return CodeGenerator.Generate(masterName, PATH, nameSpace, code);
+        }
+
+        public static bool CreateMaster(string masterName, string masterPath, string nameSpace)
         {
             if (!LoadMaster(masterName))
             {
@@ -147,6 +138,14 @@ namespace MasterLoader
             ConfigData.CurrentMasterName = masterName;
             ConfigData.WaitCreateMaster = true;
             SaveConfig();
+
+            if (!GenerateCode(masterName, masterPath, nameSpace, _loadedResult))
+            {
+                _loadedResult = default;
+                return false;
+            }
+            _loadedResult = default;
+
             if (!EditorApplication.isCompiling)
             {
                 OnCreateMaster();
