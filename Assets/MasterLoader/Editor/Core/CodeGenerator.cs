@@ -134,8 +134,7 @@ namespace MasterLoader
 
             try
             {
-
-                var length = parameterList.Length - EnumValues.Count;
+                var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, Master, masterProperty, nameSpace, setDataCode);
 
