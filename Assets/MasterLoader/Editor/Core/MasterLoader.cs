@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
 using MasterLoaderConfig;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MasterLoader
 {
@@ -14,7 +16,6 @@ namespace MasterLoader
     public class MasterLoader : Editor
     {
         public static Config ConfigData;
-        private static Base _loadedResult;
 
         private const string _CONFIG_PATH = "Confing";
         public const string MASTER = "Master";
@@ -66,7 +67,69 @@ namespace MasterLoader
         private static bool LoadMaster(string masterName)
         {
             var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl}";
+            Debug.Log(url);
+            var json = LoadMasterCore(url);
 
+            if (string.IsNullOrEmpty(json))
+            {
+                return false;
+            }
+
+            var result = JsonUtility.FromJson<Base>(json);
+
+            if (result.Alerts?.Length > 0)
+            {
+                for (var i = 0; i < result.Alerts.Length; i++)
+                {
+                    Debug.LogError($"MasterLoader Info: {result.Alerts[i]}");
+                }
+                return false;
+            }
+            var list = ConfigData.LoadedResultList;
+            if (list.Count > 0)
+            {
+                ConfigData.LoadedResultList.Clear();
+                Debug.LogWarning($"{nameof(list)} has old list, cleared.");
+            }
+            list.Add(result);
+            return true;
+        }
+
+        private static bool LoadAllMaster()
+        {
+            var url = $"{_API_URL}function=LoadAll&{_URL}{ConfigData.SheetUrl}";
+
+            var json = LoadMasterCore(url);
+
+            if (string.IsNullOrEmpty(json))
+            {
+                return false;
+            }
+
+            var result = JsonUtility.FromJson<BaseAll>(json).Bases;
+            var _isValid = true;
+
+            foreach(var obj in result)
+            {
+                if (obj.Alerts?.Length > 0)
+                {
+                    for (var i = 0; i < obj.Alerts.Length; i++)
+                    {
+                        Debug.LogError($"MasterLoader Info: {obj.Alerts[i]}");
+                    }
+                    _isValid = false;
+                }
+            }
+            if (!_isValid)
+            {
+                return false;
+            }
+            ConfigData.LoadedResultList = result.ToList();
+            return true;
+        }
+
+        private static string LoadMasterCore(string url)
+        {
             try
             {
                 using (UnityWebRequest request = UnityWebRequest.Get(url))
@@ -83,36 +146,20 @@ namespace MasterLoader
                         Debug.LogError("MasterLoader Info: NetWork Error.");
                         throw new Exception(request.error);
                     }
-                    else
+
+                    var json = request.downloadHandler.text;
+                    if (json.Contains("<!DOCTYPE html>"))
                     {
-                        var json = request.downloadHandler.text;
-                        if (json.Contains("<!DOCTYPE html>"))
-                        {
-                            Debug.Log(json);
-                            return false;
-                        }
-
-                        var result = JsonUtility.FromJson<Base>(json);
-
-                        if(result.Alerts?.Length > 0)
-                        {
-                            for(var i = 0; i < result.Alerts.Length; i++)
-                            {
-                                Debug.LogError($"MasterLoader Info: {result.Alerts[i]}");
-                            }
-                            return false;
-                        }
-                        _loadedResult = result;
-                        ConfigData.CodeJson = json;
-                        return true;
+                        throw new Exception(json);
                     }
+                    return json;
                 }
             }
             catch (Exception e)
             {
                 Debug.LogError("MasterLoader Info: Request has failed.");
                 Debug.LogException(e);
-                return false;
+                return string.Empty;
             }
             finally
             {
@@ -120,28 +167,42 @@ namespace MasterLoader
             }
         }
 
-        private static bool GenerateCode(string masterName, string masterPath, string nameSpace, Base code)
+        private static bool GenerateCode(string masterPath, string nameSpace, Base code)
         {
-            return CodeGenerator.Generate(masterName, masterPath, nameSpace, code);
+            return CodeGenerator.Generate(masterPath, nameSpace, code);
         }
 
-        public static bool CreateMaster(string masterName, string masterPath, string nameSpace)
+        public static bool CreateMaster(string masterName)
         {
             if (!LoadMaster(masterName))
             {
                 return false;
             }
+            return CreateMaster_();
+        }
 
-            ConfigData.CurrentMasterName = masterName;
-            ConfigData.WaitCreateMaster = true;
-            SaveConfig();
-
-            if (!GenerateCode(masterName, masterPath, nameSpace, _loadedResult))
+        public static bool CreateAll()
+        {
+            if (!LoadAllMaster())
             {
-                _loadedResult = default;
                 return false;
             }
-            _loadedResult = default;
+            return CreateMaster_();
+        }
+
+        private static bool CreateMaster_()
+        {
+            ConfigData.WaitCreateMaster = true;
+            SaveConfig();
+            var list = ConfigData.LoadedResultList;
+            foreach (var _loadedResult in list)
+            {
+                if (!GenerateCode(ConfigData.MasterPath, ConfigData.NameSpace, _loadedResult))
+                {
+                    //list.Clear();
+                    return false;
+                }
+            }
 
             if (!EditorApplication.isCompiling)
             {
@@ -162,31 +223,23 @@ namespace MasterLoader
             }
             ConfigData.WaitCreateMaster = false;
             SaveConfig();
-            var assetPath = $"{ConfigData.MasterPath}{ConfigData.CurrentMasterName}.asset";
-            var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
-            if (soMaster == null)
+            foreach(var target in ConfigData.LoadedResultList)
             {
-                Debug.Log("MasterLoader Info: Creating MasterData...");
-                soMaster = CreateInstance($"{ConfigData.CurrentMasterName}{MASTER}");
-                AssetDatabase.CreateAsset(soMaster, assetPath);
-            }
-            var method = soMaster.GetType().GetMethod("SetData");
+                var assetPath = $"{ConfigData.MasterPath}/{target.Name}.asset";
+                var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                if (soMaster == null)
+                {
+                    Debug.Log("MasterLoader Info: Creating MasterData...");
+                    soMaster = CreateInstance($"{target.Name}{MASTER}");
+                    AssetDatabase.CreateAsset(soMaster, assetPath);
+                }
+                var method = soMaster.GetType().GetMethod("SetData");
 
-            try
-            {
-                var valueList = JsonUtility.FromJson<Base>(ConfigData.CodeJson).ValueList;
-                method.Invoke(soMaster, new object[] { valueList });
+                method.Invoke(soMaster, new object[] { target.ValueList });
+                EditorUtility.SetDirty(soMaster);
+                Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
-            catch (Exception ex)
-            {
-                Debug.Log(ex.Message);
-                return;
-            }
-            EditorUtility.SetDirty(soMaster);
-
-            Debug.Log($"MasterLoader Info: {MASTER} Completely Created!");
-            ConfigData._AllCurrentIndex++;
-            SaveConfig();
+            //ConfigData.LoadedResultList.Clear();
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
@@ -217,7 +270,6 @@ namespace MasterLoader
                         var returnConfig = JsonUtility.FromJson<Config>(json);
                         ConfigData.SheetUrl = returnConfig.SheetUrl;
                         ConfigData.Masters = returnConfig.Masters;
-                        ConfigData.CurrentMasterName = masterName;
                         Debug.Log("MasterLoader Info: Creating Sheet has completed.");
                         foreach(var m in ConfigData.Masters)
                         {

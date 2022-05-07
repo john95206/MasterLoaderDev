@@ -39,10 +39,7 @@ namespace MasterLoader
 
         private bool _acceptedDriveUrl = false;
         private bool _isAuto = false;
-        private string _currentMasterName = "";
-        private string _driveUrl = string.Empty;
         private string _sheetUrl = string.Empty;
-        private string _masterName = string.Empty;
         private string _nameSpace = string.Empty;
         private string _masterPath = string.Empty;
         private int sheetIndex = 0;
@@ -85,6 +82,7 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
+            var driveUrl = configData.DriveUrl;
             // drive url field
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -92,16 +90,16 @@ namespace MasterLoader
 
                 configData.DriveUrl = EditorGUILayout.TextField(configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
 
-                if(_driveUrl != configData.DriveUrl)
+                if(driveUrl != configData.DriveUrl)
                 {
-                    _driveUrl = configData.DriveUrl;
+                    driveUrl = configData.DriveUrl;
                     _isDirty = true;
                 }
             }
 
-            var isDriveUrl = _driveUrl.StartsWith(_DRIVE_URL);
+            var isDriveUrl = driveUrl.StartsWith(_DRIVE_URL);
 
-            if (string.IsNullOrEmpty(_driveUrl))
+            if (string.IsNullOrEmpty(driveUrl))
             {
                 EditorGUILayout.LabelField("Enter your drive URL", GUILayout.Width(200));
             }
@@ -111,37 +109,39 @@ namespace MasterLoader
                 _acceptedDriveUrl = false;
             }
             else if (isDriveUrl &&
-                _driveUrl.IndexOf("folders") < 0)
+                driveUrl.IndexOf("folders") < 0)
             {
                 EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(250));
                 _acceptedDriveUrl = false;
             }
-            else if (isDriveUrl && _driveUrl.IndexOf("folders") > -1)
+            else if (isDriveUrl && driveUrl.IndexOf("folders") > -1)
             {
+                var masterName = string.Empty;
                 _acceptedDriveUrl = true;
                 // mastername field
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("Enter your master name", GUILayout.Width(200));
 
-                    _masterName = EditorGUILayout.TextField(_masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
+                    masterName = EditorGUILayout.TextField(masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
                 }
 
-                if (!string.IsNullOrEmpty(_masterName))
+                if (!string.IsNullOrEmpty(masterName))
                 {
                     EditorGUILayout.Space();
 
                     var createButton = GUILayout.Button("Create", GUILayout.Width(50));
                     if (createButton)
                     {
-                        var idIndex = _driveUrl.LastIndexOf('/');
-                        var id = _driveUrl.Substring(idIndex + 1);
-                        MasterLoader.CreateSpreadSheet(_masterName, id);
+                        var idIndex = driveUrl.LastIndexOf('/');
+                        var id = driveUrl.Substring(idIndex + 1);
+                        MasterLoader.CreateSpreadSheet(masterName, id);
                     }
                 }
             }
             else
             {
+                _acceptedDriveUrl = false;
                 EditorGUILayout.LabelField("unexpected URL.", GUILayout.Width(120));
             }
         }
@@ -238,13 +238,23 @@ namespace MasterLoader
 
             if (!configData.IsAll)
             {
-                _currentMasterName = configData.Masters[configData.SheetIndex];
+                var currentMasterName = configData.CurrentMasterName;
+                configData.CurrentMasterName = configData.Masters[configData.SheetIndex];
+                if(currentMasterName != configData.CurrentMasterName)
+                {
+                    _isDirty = true;
+                }
             }
 
-            var createMasterButton = GUILayout.Button($"Create {_currentMasterName} Master");
+            var createMasterButton = GUILayout.Button($"Create {configData.CurrentMasterName} Master");
             if (createMasterButton)
             {
-                MasterLoader.CreateMaster(configData.CurrentMasterName, configData.MasterPath, configData.NameSpace);
+                MasterLoader.CreateMaster(configData.CurrentMasterName);
+            }
+            var createAllButton = GUILayout.Button($"Create All Master");
+            if (createAllButton)
+            {
+                MasterLoader.CreateAll();
             }
 
             DrawUtilityWindow(configData);
@@ -268,7 +278,7 @@ namespace MasterLoader
 
             _pathFolder = (DefaultAsset)EditorGUILayout.ObjectField("Master path", _pathFolder, typeof(DefaultAsset), true);
             _masterPath = AssetDatabase.GetAssetPath(_pathFolder);
-            if(_masterPath != configData.MasterPath)
+            if(_masterPath != configData.MasterPath && !string.IsNullOrEmpty(_masterPath))
             {
                 configData.MasterPath = _masterPath;
                 _isDirty = true;

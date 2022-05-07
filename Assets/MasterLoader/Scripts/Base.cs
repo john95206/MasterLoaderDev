@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MasterLoader
 {
     [Serializable]
     public class Base
     {
+        public string Name;
         public string[] Parameter;
         public string[] Type;
         public string[] Comment;
