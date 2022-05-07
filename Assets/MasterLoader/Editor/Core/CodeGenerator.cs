@@ -92,16 +92,7 @@ namespace MasterLoader
                 body += parameter;
             }
 
-            var rowCode =
-                $"using System;{_LINE}" +
-                $"namespace {_NAMESPACE}{_LINE}" +
-                $"{{" +
-                $"{GetBaseIndent(1)}[Serializable]" +
-                $"{GetBaseIndent(1)}public class {masterName}" +
-                $"{GetBaseIndent(1)}{{" +
-                $"{body}" +
-                $"{GetBaseIndent(1)}}}{_LINE}" +
-                $"}}";
+            var rowCode = string.Empty;
 
             var parameterCode = string.Empty;
 
@@ -120,7 +111,7 @@ namespace MasterLoader
 
                 rowCode =
                 $"using System;{_LINE}" +
-                $"namespace {_NAMESPACE}{_LINE}" +
+                $"namespace {nameSpace}{_LINE}" +
                 $"{{" +
                 $"{GetBaseIndent(1)}[Serializable]" +
                 $"{GetBaseIndent(1)}public class {masterName}" +
