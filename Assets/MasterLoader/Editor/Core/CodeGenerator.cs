@@ -36,12 +36,13 @@ namespace MasterLoader
             return _value;
         }
 
-        public static bool Generate(string masterName, string masterPath, string nameSpace, Base result)
+        public static bool Generate(string masterPath, string nameSpace, Base result)
         {
             if (string.IsNullOrEmpty(nameSpace))
             {
                 nameSpace = _NAMESPACE;
             }
+            var masterName = result.Name;
             var typeList = result.Type;
             var commentList = result.Comment;
             var parameterList = result.Parameter;

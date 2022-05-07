@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MasterLoader;
+using System;
+using System.Collections.Generic;
 
 namespace MasterLoaderConfig
 {
@@ -13,7 +15,6 @@ namespace MasterLoaderConfig
         public bool IsAll = false;
         public int AllCurrentIndex = 0;
         public int _AllCurrentIndex = 0;
-        public string CodeJson = string.Empty;
         public string[] Masters;
         public string CurrentMasterName = string.Empty;
         public string[] Alerts;
@@ -21,5 +22,6 @@ namespace MasterLoaderConfig
         public string MasterPath = "Assets/MasterLoader/Master/";
         public bool WaitCreateMaster = false;
         public MasterLoaderLanguage Language;
+        public List<Base> LoadedResultList = new List<Base>();
     }
 }
