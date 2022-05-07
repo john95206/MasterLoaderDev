@@ -2,6 +2,6 @@
 {
     public class BaseAll
     {
-        public Base[] Bases;
+        public Base[] Values;
     }
 }

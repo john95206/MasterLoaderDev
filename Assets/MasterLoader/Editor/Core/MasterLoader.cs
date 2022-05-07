@@ -27,10 +27,6 @@ namespace MasterLoader
         /// 読み込むシートの判断用
         /// </summary>
         private const string _SHEET_NAME = "sheetName=";
-        /// <summary>
-        /// マスタ自動更新するかどうか
-        /// </summary>
-        public static bool IsAutoUpdateEnabled = false;
 
         /// <summary>
         /// アプリ起動時に自動でScriptableObjectを更新する
@@ -43,20 +39,6 @@ namespace MasterLoader
             }
 
             UpdateConfig();
-            //// ゲームプレビュー終了時に自動でScriptableObjectを更新する
-            EditorApplication.playModeStateChanged += (state) =>
-            {
-                if (ConfigData.IsAuto)
-                {
-                    if (state == PlayModeStateChange.EnteredEditMode)
-                    {
-                        //for(var i = 0; i < ConfigData.Masters.Length; i++)
-                        //{
-                        //    LoadMaster(ConfigData.Masters[i]);
-                        //}
-                    }
-                }
-            };
         }
 
         /// <summary>
@@ -106,7 +88,7 @@ namespace MasterLoader
                 return false;
             }
 
-            var result = JsonUtility.FromJson<BaseAll>(json).Bases;
+            var result = JsonUtility.FromJson<BaseAll>(json).Values;
             var _isValid = true;
 
             foreach(var obj in result)
@@ -371,14 +353,6 @@ namespace MasterLoader
         public static void UpdateConfig()
         {
             ConfigData = LoadConfig();
-        }
-
-        public static void ResetCreateAllConfig()
-        {
-            ConfigData.IsAll = false;
-            ConfigData.AllCurrentIndex = 0;
-            ConfigData._AllCurrentIndex = 0;
-            SaveConfig();
         }
     }
 }

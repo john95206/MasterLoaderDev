@@ -11,10 +11,6 @@ namespace MasterLoaderConfig
         public string SheetUrl = string.Empty;
         public bool IsFetched = false;
         public int SheetIndex = 0;
-        public bool IsAuto = false;
-        public bool IsAll = false;
-        public int AllCurrentIndex = 0;
-        public int _AllCurrentIndex = 0;
         public string[] Masters;
         public string CurrentMasterName = string.Empty;
         public string[] Alerts;

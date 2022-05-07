@@ -38,7 +38,6 @@ namespace MasterLoader
         private bool _isDirty = false;
 
         private bool _acceptedDriveUrl = false;
-        private bool _isAuto = false;
         private string _sheetUrl = string.Empty;
         private string _nameSpace = string.Empty;
         private string _masterPath = string.Empty;
@@ -236,14 +235,11 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
-            if (!configData.IsAll)
+            var currentMasterName = configData.CurrentMasterName;
+            configData.CurrentMasterName = configData.Masters[configData.SheetIndex];
+            if (currentMasterName != configData.CurrentMasterName)
             {
-                var currentMasterName = configData.CurrentMasterName;
-                configData.CurrentMasterName = configData.Masters[configData.SheetIndex];
-                if(currentMasterName != configData.CurrentMasterName)
-                {
-                    _isDirty = true;
-                }
+                _isDirty = true;
             }
 
             var createMasterButton = GUILayout.Button($"Create {configData.CurrentMasterName} Master");
@@ -286,31 +282,6 @@ namespace MasterLoader
             EditorGUILayout.LabelField($"Master will be generated to: {configData.MasterPath}");
 
             EditorGUILayout.Space();
-
-            var resetAllButton = GUILayout.Button($"一括DLがうまくいかないときに押すボタン");
-            if (resetAllButton)
-            {
-                MasterLoader.ResetCreateAllConfig();
-            }
-
-            if (!configData.IsAll)
-            {
-                var createAllButton = GUILayout.Button($"Create All Master");
-
-                if (createAllButton)
-                {
-                    // configData.IsAll = true;
-                    // MasterLoader.SaveConfig();
-                }
-            }
-
-            EditorGUILayout.Space();
-
-            if (_isAuto != MasterLoader.IsAutoUpdateEnabled)
-            {
-            }
-            MasterLoader.IsAutoUpdateEnabled = GUILayout.Toggle(MasterLoader.IsAutoUpdateEnabled, "Enable updating masters");
-            _isAuto = MasterLoader.IsAutoUpdateEnabled;
         }
 
         private void OnGUI()
