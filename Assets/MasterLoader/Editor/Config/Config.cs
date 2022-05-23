@@ -19,5 +19,6 @@ namespace MasterLoaderConfig
         public bool WaitCreateMaster = false;
         public MasterLoaderLanguage Language;
         public List<Base> LoadedResultList = new List<Base>();
+        public List<MasterValue> CreatingMasterValueList = new List<MasterValue>();
     }
 }

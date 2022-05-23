@@ -2,6 +2,7 @@
 using UnityEditor;
 using MasterLoaderConfig;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace MasterLoader
 {
@@ -32,9 +33,32 @@ namespace MasterLoader
             SheetCreator,
             Loader,
         }
+        private enum ValueStatus
+        {
+            None,
+            Up,
+            Down,
+            Delete,
+            Add,
+        }
+        private class ValueAction
+        {
+            public ValueStatus Status;
+            public MasterValue Value;
+        }
 
+        private string[] _TYPE_LABELS = new string[]
+        {
+            "int",
+            "float",
+            "double",
+            "bool",
+            "string",
+            "enum"
+        };
         private DefaultAsset _pathFolder;
         private TabStatus _tabStatus;
+        private Vector2 _scrollPos;
         private bool _isDirty = false;
 
         private bool _acceptedDriveUrl = false;
@@ -83,7 +107,7 @@ namespace MasterLoader
             }
 
             // mastername field
-            _masterName = EditorGUILayout.TextField("Enter your master name", _masterName, GUILayout.MinWidth(50), GUILayout.MaxWidth(100));
+            _masterName = EditorGUILayout.TextField("Master name", _masterName);
 
             if (!string.IsNullOrEmpty(_masterName))
             {
@@ -101,6 +125,115 @@ namespace MasterLoader
             }
         }
 
+        private void DrawMasterValueField(Config configData)
+        {
+            if(configData.CreatingMasterValueList.Count < 1)
+            {
+                if (!GUILayout.Button("Start Editing Values"))
+                {
+                    return;
+                }
+                configData.CreatingMasterValueList.Add(new MasterValue { });
+            }
+            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
+            {
+                var actions = new List<ValueAction>();
+                for(var i = 0; i < configData.CreatingMasterValueList.Count; i++)
+                {
+                    var action = DrawValue(configData.CreatingMasterValueList[i], configData.CreatingMasterValueList.Count);
+                    if(action.Status == ValueStatus.None)
+                    {
+                        continue;
+                    }
+                    actions.Add(action);
+                }
+
+                for(var i = 0; i < actions.Count; i++)
+                {
+                    EditMasterValueList(actions[i], configData);
+                }
+
+                _scrollPos = scrollView.scrollPosition;
+            }
+        }
+
+        private void EditMasterValueList(ValueAction action, Config configData)
+        {
+            var list = configData.CreatingMasterValueList;
+            switch (action.Status)
+            {
+                case ValueStatus.None:
+                    return;
+                case ValueStatus.Up:
+                    break;
+                case ValueStatus.Down:
+                    break;
+                case ValueStatus.Delete:
+                    list.Remove(action.Value);
+                    break;
+                case ValueStatus.Add:
+                    if(list.Count < 1)
+                    {
+                        list.Add(action.Value);
+                        list.Add(new MasterValue { });
+                    }
+                    else
+                    {
+                        var index = list.IndexOf(action.Value) + 1;
+                        if(index < list.Count)
+                        {
+                            list.Insert(index, new MasterValue { });
+                        }
+                        else
+                        {
+                            list.Add(new MasterValue { });
+                        }
+                    }
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        private ValueAction DrawValue(MasterValue _value, int count)
+        {
+            var typeIndex = 0;
+            var status = ValueStatus.None;
+
+            using(new EditorGUILayout.HorizontalScope())
+            {
+                _value.VariableName = EditorGUILayout.TextField("Name", _value.VariableName);
+                typeIndex = EditorGUILayout.Popup(typeIndex, _TYPE_LABELS);
+                _value.Type = _TYPE_LABELS[typeIndex];
+                _value.Value = EditorGUILayout.TextField("Value", _value.Value);
+                if(count > 0)
+                {
+                    if (GUILayout.Button("▲"))
+                    {
+                        status = ValueStatus.Up;
+                    }
+                    else if (GUILayout.Button("▼"))
+                    {
+                        status = ValueStatus.Down;
+                    }
+                    else if (GUILayout.Button(" - "))
+                    {
+                        status = ValueStatus.Delete;
+                    }
+                }
+                if(GUILayout.Button(" + "))
+                {
+                    status = ValueStatus.Add;
+                }
+            }
+            return new ValueAction
+            {
+                Status = status,
+                Value = _value
+            };
+        }
+
+        private bool DrawDriveUrlField(Config configData)
         {
             var text = !_acceptedDriveUrl ?
                 "Get start to enter your Google Drive folder URL." :
@@ -111,7 +244,7 @@ namespace MasterLoader
 
             var driveUrl = configData.DriveUrl;
 
-            configData.DriveUrl = EditorGUILayout.TextField("Drive URL", configData.DriveUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+            configData.DriveUrl = EditorGUILayout.TextField("Drive URL", configData.DriveUrl);
 
             if (driveUrl != configData.DriveUrl)
             {
