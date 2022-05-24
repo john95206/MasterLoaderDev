@@ -3,6 +3,7 @@
 using UnityEditor;
 #endif
 using MasterLoader;
+using Dev;
 
 namespace MasterLoader
 {
@@ -10,7 +11,6 @@ namespace MasterLoader
 	{
 		public testMasterMaster testMaster;
 		public secondMaster second;
-
 #if UNITY_EDITOR
 		public void SetMaster()
 		{

@@ -134,21 +134,18 @@ namespace MasterLoader.Core
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, config.NameSpace, setDataCode);
                 var installerCode = string.Empty;
-                if (config.CreateInstaller)
+                var masters = new List<string>();
+                for (var i = 0; i < config.Masters.Length; i++)
                 {
-                    var masters = new List<string>();
-                    for(var i = 0; i < config.Masters.Length; i++)
+                    var name = config.Masters[i];
+                    var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder), name);
+                    if (master == null)
                     {
-                        var name = config.Masters[i];
-                        var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder), name);
-                        if(master == null)
-                        {
-                            continue;
-                        }
-                        masters.Add(name);
+                        continue;
                     }
-                    installerCode = GenerateInstallerCode(config);
+                    masters.Add(name);
                 }
+                installerCode = GenerateInstallerCode(config);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
                 var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
@@ -161,13 +158,10 @@ namespace MasterLoader.Core
                 {
                     sw.Write(masterCode);
                 }
-                if (config.CreateInstaller)
+                var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
+                using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
                 {
-                    var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
-                    using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
-                    {
-                        sw.Write(installerCode);
-                    }
+                    sw.Write(installerCode);
                 }
                 AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
 

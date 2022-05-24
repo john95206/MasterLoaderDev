@@ -19,7 +19,7 @@ namespace MasterLoaderConfig
         public List<MasterNamespace> MasterNamespaceList = new List<MasterNamespace>();
         public DefaultAsset MasterPathFolder = null;
         public bool WaitCreateMaster = false;
-        public bool CreateInstaller = true;
+        public bool NeedInstaller = true;
         public MasterLoaderLanguage Language;
         public List<Base> LoadedResultList = new List<Base>();
         public List<MasterValue> CreatingMasterValueList = new List<MasterValue>();

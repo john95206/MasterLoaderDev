@@ -179,22 +179,24 @@ namespace MasterLoader.Core
             var list = ConfigData.LoadedResultList;
             foreach (var _loadedResult in list)
             {
+                var target = ConfigData.MasterNamespaceList.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
+                if (target != null)
+                {
+                    target.Namespace = ConfigData.NameSpace;
+                }
+                else
+                {
+                    ConfigData.MasterNamespaceList.Add(new MasterNamespace
+                    {
+                        MasterName = _loadedResult.Name,
+                        Namespace = ConfigData.NameSpace
+                    });
+                }
                 if (!GenerateCode(ConfigData, _loadedResult))
                 {
                     //list.Clear();
                     return false;
                 }
-                var target = ConfigData.MasterNamespaceList.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
-                if (target != null)
-                {
-                    target.Namespace = ConfigData.NameSpace;
-                    continue;
-                }
-                ConfigData.MasterNamespaceList.Add(new MasterNamespace
-                {
-                    MasterName = _loadedResult.Name,
-                    Namespace = ConfigData.NameSpace
-                });
             }
             SaveConfig();
 
@@ -233,7 +235,7 @@ namespace MasterLoader.Core
                 EditorUtility.SetDirty(soMaster);
                 Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
-            if (!ConfigData.CreateInstaller)
+            if (!ConfigData.NeedInstaller)
             {
                 return;
             }
@@ -245,7 +247,6 @@ namespace MasterLoader.Core
             }
             var component = installer.GetComponent<MasterInstaller>();
             component.SetMaster();
-            component.hideFlags = HideFlags.NotEditable;
         }
 
         public static void CreateSpreadSheet(string masterName, string id)

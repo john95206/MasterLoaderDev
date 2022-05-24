@@ -391,8 +391,7 @@ namespace MasterLoader.Core
 
         private void DrawUtilityWindow(Config configData)
         {
-            // 仕切り線
-            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+            DrawLine();
 
             EditorGUILayout.Space();
 
@@ -417,6 +416,21 @@ namespace MasterLoader.Core
             EditorGUILayout.Space();
         }
 
+        private void DrawConfig(Config config)
+        {
+            DrawLine();
+
+            EditorGUILayout.Space();
+
+            var needInstaller = config.NeedInstaller;
+            needInstaller = EditorGUILayout.Toggle("Create MasterInstaller?", needInstaller);
+            if(needInstaller != config.NeedInstaller)
+            {
+                config.NeedInstaller = needInstaller;
+                _isDirty = true;
+            }
+        }
+
         private void OnGUI()
         {
             var configData = MasterLoader.ConfigData;
@@ -438,6 +452,8 @@ namespace MasterLoader.Core
                 DrawLoaderWindow(configData);
             }
 
+            DrawConfig(configData);
+
             if (!_isDirty)
             {
                 return;
@@ -445,6 +461,18 @@ namespace MasterLoader.Core
             _isDirty = false;
             MasterLoader.SaveConfig();
             Debug.Log("Saved Config");
+        }
+
+        private void DrawLine(bool isHorizontal = true)
+        {
+            if (isHorizontal)
+            {
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+            }
+            else
+            {
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Width(1));
+            }
         }
     }
 }
