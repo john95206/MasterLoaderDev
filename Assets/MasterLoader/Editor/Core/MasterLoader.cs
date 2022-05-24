@@ -251,7 +251,8 @@ namespace MasterLoader.Core
 
         public static void CreateSpreadSheet(string masterName, string id)
         {
-            var url = $"{_API_URL}function=CreateSheet&masterName={masterName}&id={id}&sheetName={masterName}";
+            var valueJson = JsonUtility.ToJson(ConfigData.CreatingMasterValueList);
+            var url = $"{_API_URL}function=CreateSheet&masterName={masterName}&id={id}&sheetName={masterName}&values={valueJson}";
 
             try
             {

@@ -105,7 +105,6 @@ namespace MasterLoader.Core
                 return;
             }
 
-            // mastername field
             _masterName = EditorGUILayout.TextField("Master name", _masterName);
 
             if (!string.IsNullOrEmpty(_masterName))
@@ -296,7 +295,7 @@ namespace MasterLoader.Core
                 EditorGUILayout.LabelField("Please fix all compile error.", GUILayout.Width(200));
                 return;
             }
-            DrawSheetCreateWindow(configData);
+            DrawMasterCreateWindow(configData);
 
             GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
         }
@@ -350,7 +349,7 @@ namespace MasterLoader.Core
             return true;
         }
 
-        private void DrawSheetCreateWindow(Config configData)
+        private void DrawMasterCreateWindow(Config configData)
         {
             if (!configData.IsFetched)
             {
