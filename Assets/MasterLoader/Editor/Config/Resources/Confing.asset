@@ -13,21 +13,23 @@ MonoBehaviour:
   m_Name: Confing
   m_EditorClassIdentifier: 
   Config:
-    DriveUrl: 
+    DriveUrl: https://drive.google.com/drive/folders/1gha4Bi3sTXjCuZQuab-OYPs4jsFAxuMr
     SheetUrl: https://docs.google.com/spreadsheets/d/1ZwYU-osH8fXICy4cFP_QsokN-l826ERJk1CuOjG5D3A/edit#gid=711625210
     IsFetched: 1
     SheetIndex: 1
-    IsAuto: 0
-    IsAll: 0
-    AllCurrentIndex: 0
-    _AllCurrentIndex: 3
-    CodeJson: '{"Alerts":[],"Parameter":["id","isTrue","ass","bb","e","ee"],"Type":["enum","bool","string","int","enum","enum"],"Comment":["","a","aa","oooooooooooooooooooooooooooooooooooooooooooooo","","aa",""],"ValueList":["a",true,"aaaaa",0,"aa","p","a",true,0,22,"b","b","a",false,"a",56,"c","c","a",false,"null",4,"d","d"]}'
     Masters:
     - testMaster
     - second
     CurrentMasterName: second
     Alerts: []
     NameSpace: MasterLoader
-    MasterPath: Assets/MasterLoader/Master
+    MasterPathFolder: {fileID: 102900000, guid: fee099c53a52e4e4aa5b2866b6f6504e,
+      type: 3}
     WaitCreateMaster: 0
+    CreateInstaller: 1
     Language: 0
+    LoadedResultList: []
+    CreatingMasterValueList:
+    - VariableName: 
+      Type: int
+      Value: 

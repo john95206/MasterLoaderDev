@@ -56,7 +56,7 @@ namespace MasterLoader
             "string",
             "enum"
         };
-        private DefaultAsset _pathFolder;
+        private string _folderPath;
         private TabStatus _tabStatus;
         private Vector2 _scrollPos;
         private bool _isDirty = false;
@@ -64,7 +64,6 @@ namespace MasterLoader
         private bool _acceptedDriveUrl = false;
         private string _sheetUrl = string.Empty;
         private string _nameSpace = string.Empty;
-        private string _masterPath = string.Empty;
         private int sheetIndex = 0;
         private string _masterName = string.Empty;
 
@@ -406,14 +405,14 @@ namespace MasterLoader
 
             EditorGUILayout.Space();
 
-            _pathFolder = (DefaultAsset)EditorGUILayout.ObjectField("Master path", _pathFolder, typeof(DefaultAsset), true);
-            _masterPath = AssetDatabase.GetAssetPath(_pathFolder);
-            if(_masterPath != configData.MasterPath && !string.IsNullOrEmpty(_masterPath))
+            _folderPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder);
+            configData.MasterPathFolder = (DefaultAsset)EditorGUILayout.ObjectField("Master path", configData.MasterPathFolder, typeof(DefaultAsset), true);
+            var masterPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder);
+            if (_folderPath != masterPath && !string.IsNullOrEmpty(masterPath))
             {
-                configData.MasterPath = _masterPath;
                 _isDirty = true;
             }
-            EditorGUILayout.LabelField($"Master will be generated to: {configData.MasterPath}");
+            EditorGUILayout.LabelField($"Master will be generated to: {configData.MasterPathFolder}");
 
             EditorGUILayout.Space();
         }

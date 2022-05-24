@@ -6,6 +6,7 @@ using System;
 using MasterLoaderConfig;
 using System.Collections.Generic;
 using System.Linq;
+using MasterLoader.Utility;
 
 namespace MasterLoader
 {
@@ -49,7 +50,7 @@ namespace MasterLoader
         private static bool LoadMaster(string masterName)
         {
             var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl}";
-            Debug.Log(url);
+            //Debug.Log(url);
             var json = LoadMasterCore(url);
 
             if (string.IsNullOrEmpty(json))
@@ -149,9 +150,9 @@ namespace MasterLoader
             }
         }
 
-        private static bool GenerateCode(string masterPath, string nameSpace, Base code)
+        private static bool GenerateCode(Config config, Base code)
         {
-            return CodeGenerator.Generate(masterPath, nameSpace, code);
+            return CodeGenerator.Generate(config, code);
         }
 
         public static bool CreateMaster(string masterName)
@@ -175,16 +176,27 @@ namespace MasterLoader
         private static bool CreateMaster_()
         {
             ConfigData.WaitCreateMaster = true;
-            SaveConfig();
             var list = ConfigData.LoadedResultList;
             foreach (var _loadedResult in list)
             {
-                if (!GenerateCode(ConfigData.MasterPath, ConfigData.NameSpace, _loadedResult))
+                if (!GenerateCode(ConfigData, _loadedResult))
                 {
                     //list.Clear();
                     return false;
                 }
+                var target = ConfigData.MasterNamespaceList.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
+                if (target != null)
+                {
+                    target.Namespace = ConfigData.NameSpace;
+                    continue;
+                }
+                ConfigData.MasterNamespaceList.Add(new MasterNamespace
+                {
+                    MasterName = _loadedResult.Name,
+                    Namespace = ConfigData.NameSpace
+                });
             }
+            SaveConfig();
 
             if (!EditorApplication.isCompiling)
             {
@@ -207,8 +219,8 @@ namespace MasterLoader
             SaveConfig();
             foreach(var target in ConfigData.LoadedResultList)
             {
-                var assetPath = $"{ConfigData.MasterPath}/{target.Name}.asset";
-                var soMaster = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                var assetPath = AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder);
+                var soMaster = Utility.Utility.GetAssetPathObject(assetPath, target.Name);
                 if (soMaster == null)
                 {
                     Debug.Log("MasterLoader Info: Creating MasterData...");
@@ -257,6 +269,7 @@ namespace MasterLoader
                         {
                             Debug.Log($"MasterLoader Info: sheet '{m}' has created.");
                         }
+                        RemoveOldMasterDictionary();
                     }
                     SaveConfig();
                 }
@@ -312,6 +325,7 @@ namespace MasterLoader
                         {
                             Debug.Log("MasterLoader Info: Getting Sheet has completed.");
                             ConfigData.Masters = data.Masters;
+                            RemoveOldMasterDictionary();
                             SaveConfig();
                             return true;
                         }
@@ -329,7 +343,21 @@ namespace MasterLoader
 
         public static void SaveConfig()
         {
-            GetConfigObject().SetData(ConfigData);
+            var config = GetConfigObject();
+            EditorUtility.SetDirty(config);
+        }
+
+        private static void RemoveOldMasterDictionary()
+        {
+            var oldMasters = ConfigData.MasterNamespaceList.Where(m => !ConfigData.Masters.Contains(m.MasterName)).ToList();
+            for (var i = 0; i < oldMasters.Count; i++)
+            {
+                if (ConfigData.Masters.Contains(oldMasters[i].MasterName))
+                {
+                    ConfigData.MasterNamespaceList.Remove(oldMasters[i]);
+                    Debug.Log($"MasterLoader Info: {oldMasters[i]} is removed because it no longer used");
+                }
+            }
         }
 
         private static ConfigObject GetConfigObject()

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using MasterLoaderConfig;
 
 namespace MasterLoader
 {
@@ -19,6 +20,7 @@ namespace MasterLoader
         }
 
         public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
+        private const string _UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
         private static List<EnumValue> _enumValues = new List<EnumValue>();
 
         private const string _NAMESPACE = "MasterLoader";
@@ -36,11 +38,11 @@ namespace MasterLoader
             return _value;
         }
 
-        public static bool Generate(string masterPath, string nameSpace, Base result)
+        public static bool Generate(Config config, Base result)
         {
-            if (string.IsNullOrEmpty(nameSpace))
+            if (string.IsNullOrEmpty(config.NameSpace))
             {
-                nameSpace = _NAMESPACE;
+                config.NameSpace = _NAMESPACE;
             }
             var masterName = result.Name;
             var typeList = result.Type;
@@ -54,9 +56,9 @@ namespace MasterLoader
             {
                 Directory.CreateDirectory(CS_PATH);
             }
-            if (!Directory.Exists(masterPath))
+            if (!Directory.Exists(AssetDatabase.GetAssetPath(config.MasterPathFolder)))
             {
-                Directory.CreateDirectory(masterPath);
+                Directory.CreateDirectory(AssetDatabase.GetAssetPath(config.MasterPathFolder));
             }
             var body = string.Empty;
             for (var i = 0; i < typeList.Length; i++)
@@ -111,7 +113,7 @@ namespace MasterLoader
 
                 rowCode =
                 $"using System;{_LINE}" +
-                $"namespace {nameSpace}{_LINE}" +
+                $"namespace {config.NameSpace}{_LINE}" +
                 $"{{" +
                 $"{GetBaseIndent(1)}[Serializable]" +
                 $"{GetBaseIndent(1)}public class {masterName}" +
@@ -131,7 +133,23 @@ namespace MasterLoader
             {
                 var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
-                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
+                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, config.NameSpace, setDataCode);
+                var installerCode = string.Empty;
+                if (config.CreateInstaller)
+                {
+                    var masters = new List<string>();
+                    for(var i = 0; i < config.Masters.Length; i++)
+                    {
+                        var name = config.Masters[i];
+                        var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder), name);
+                        if(master == null)
+                        {
+                            continue;
+                        }
+                        masters.Add(name);
+                    }
+                    installerCode = GenerateInstallerCode(config.MasterNamespaceList);
+                }
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
                 var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
@@ -143,6 +161,14 @@ namespace MasterLoader
                 using (var sw = new StreamWriter(masterCsPath, false, Encoding.UTF8))
                 {
                     sw.Write(masterCode);
+                }
+                if (config.CreateInstaller)
+                {
+                    var installerCsPath = $"{_UTILITY_PATH}MasterInstaller{CS}";
+                    using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
+                    {
+                        sw.Write(installerCode);
+                    }
                 }
                 AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
 
@@ -342,6 +368,38 @@ namespace MasterLoader
             $"{GetBaseIndent(1)}{_TAB}{{" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
             $"{GetBaseIndent(1)}{_TAB}}}" +
+            $"{GetBaseIndent(1)}}}" +
+            $"{_LINE}}}";
+        }
+
+        private static string GenerateInstallerCode(List<MasterNamespace> masterNamespace)
+        {
+            var namespaceListCode = string.Empty;
+            var masterListCode = string.Empty;
+            for(var i = 0; i < masterNamespace.Count; i++)
+            {
+                var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
+                var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
+
+                namespaceListCode +=
+                $"using {nameSpace};{_LINE}";
+
+                masterListCode +=
+                $"{GetBaseIndent(2)}[NonSerialized]" +
+                $"{GetBaseIndent(2)}public {masterName} {masterName};";
+            }
+
+            return
+            $"using System;{_LINE}" +
+            $"using System.Collections;{_LINE}" +
+            $"using System.Collections.Generic;{_LINE}" +
+            $"using UnityEngine;{_LINE}" +
+            $"{namespaceListCode}{_LINE}" +
+            $"namespace MasterLoader{_LINE}" +
+            $"{{" +
+            $"{GetBaseIndent(1)}public class MasterInstaller : MonoBehaviour" +
+            $"{GetBaseIndent(1)}{{" +
+            masterListCode +
             $"{GetBaseIndent(1)}}}" +
             $"{_LINE}}}";
         }

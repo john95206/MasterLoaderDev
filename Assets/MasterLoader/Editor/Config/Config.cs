@@ -1,6 +1,7 @@
 ﻿using MasterLoader;
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace MasterLoaderConfig
 {
@@ -15,8 +16,10 @@ namespace MasterLoaderConfig
         public string CurrentMasterName = string.Empty;
         public string[] Alerts;
         public string NameSpace = "MasterLoader";
-        public string MasterPath = "Assets/MasterLoader/Master/";
+        public List<MasterNamespace> MasterNamespaceList = new List<MasterNamespace>();
+        public DefaultAsset MasterPathFolder = null;
         public bool WaitCreateMaster = false;
+        public bool CreateInstaller = true;
         public MasterLoaderLanguage Language;
         public List<Base> LoadedResultList = new List<Base>();
         public List<MasterValue> CreatingMasterValueList = new List<MasterValue>();
