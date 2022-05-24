@@ -376,13 +376,17 @@ namespace MasterLoader
         {
             var namespaceListCode = string.Empty;
             var masterListCode = string.Empty;
+            var recordedNameSpace = new List<string>();
             for(var i = 0; i < masterNamespace.Count; i++)
             {
                 var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
                 var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
-
-                namespaceListCode +=
-                $"using {nameSpace};{_LINE}";
+                if (!recordedNameSpace.Contains(nameSpace))
+                {
+                    recordedNameSpace.Add(nameSpace);
+                    namespaceListCode +=
+                    $"using {nameSpace};{_LINE}";
+                }
 
                 masterListCode +=
                 $"{GetBaseIndent(2)}[NonSerialized]" +
