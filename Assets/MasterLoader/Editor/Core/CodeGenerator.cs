@@ -386,7 +386,7 @@ namespace MasterLoader
 
                 masterListCode +=
                 $"{GetBaseIndent(2)}[NonSerialized]" +
-                $"{GetBaseIndent(2)}public {masterName} {masterName};";
+                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {masterName};";
             }
 
             return
