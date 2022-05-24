@@ -4,7 +4,6 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
 using MasterLoaderConfig;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace MasterLoader.Core
@@ -19,6 +18,7 @@ namespace MasterLoader.Core
 
         public const string UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
         private const string _CONFIG_PATH = "Confing";
+        private const string _INSTALLER_PATH = "Assets/MasterLoader/Prefab/MasterInstaller.prefab";
         public const string MASTER = "Master";
         private const string _API_URL =
             "https://script.google.com/macros/s/AKfycbwjx-pDNW89Hzi0SV_hGHzVhOMt2_v6K6r4S9Txd_JTuiilzxjHOqjwo3IYcm7PnVWGZQ/exec?";
@@ -233,7 +233,19 @@ namespace MasterLoader.Core
                 EditorUtility.SetDirty(soMaster);
                 Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
-            //ConfigData.LoadedResultList.Clear();
+            if (!ConfigData.CreateInstaller)
+            {
+                return;
+            }
+            var installer = AssetDatabase.LoadMainAssetAtPath(_INSTALLER_PATH) as GameObject;
+            if(installer == null)
+            {
+                Debug.LogError("MasterLoader Info: Not found Installer");
+                return;
+            }
+            var component = installer.GetComponent<MasterInstaller>();
+            component.SetMaster();
+            component.hideFlags = HideFlags.NotEditable;
         }
 
         public static void CreateSpreadSheet(string masterName, string id)

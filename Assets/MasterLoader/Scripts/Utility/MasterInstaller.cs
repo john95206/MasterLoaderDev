@@ -1,17 +1,22 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Dev;
-using Dev;
+﻿using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using MasterLoader;
 
 namespace MasterLoader
 {
 	public class MasterInstaller : MonoBehaviour
 	{
-		[NonSerialized]
-		public testMaster testMaster;
-		[NonSerialized]
-		public second second;
+		public testMasterMaster testMaster;
+		public secondMaster second;
+
+#if UNITY_EDITOR
+		public void SetMaster()
+		{
+			testMaster = AssetDatabase.LoadMainAssetAtPath("Assets/MasterLoader/Master/testMaster.asset") as testMasterMaster;
+			second = AssetDatabase.LoadMainAssetAtPath("Assets/MasterLoader/Master/second.asset") as secondMaster;
+		}
+#endif
 	}
 }

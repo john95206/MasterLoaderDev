@@ -147,7 +147,7 @@ namespace MasterLoader.Core
                         }
                         masters.Add(name);
                     }
-                    installerCode = GenerateInstallerCode(config.MasterNamespaceList);
+                    installerCode = GenerateInstallerCode(config);
                 }
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
@@ -163,7 +163,7 @@ namespace MasterLoader.Core
                 }
                 if (config.CreateInstaller)
                 {
-                    var installerCsPath = $"{_UTILITY_PATH}MasterInstaller{CS}";
+                    var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
                     using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
                     {
                         sw.Write(installerCode);
@@ -371,12 +371,15 @@ namespace MasterLoader.Core
             $"{_LINE}}}";
         }
 
-        private static string GenerateInstallerCode(List<MasterNamespace> masterNamespace)
+        private static string GenerateInstallerCode(Config config)
         {
+            var masterNamespace = config.MasterNamespaceList;
+
             var namespaceListCode = string.Empty;
             var masterListCode = string.Empty;
             var recordedNameSpace = new List<string>();
-            for(var i = 0; i < masterNamespace.Count; i++)
+            var installCode = string.Empty;
+            for (var i = 0; i < masterNamespace.Count; i++)
             {
                 var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
                 var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
@@ -388,21 +391,35 @@ namespace MasterLoader.Core
                 }
 
                 masterListCode +=
-                $"{GetBaseIndent(2)}[NonSerialized]" +
+                //$"{GetBaseIndent(2)}[NonSerialized]" +
                 $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {masterName};";
+
+                var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder)}/{masterName}.asset\"";
+                installCode +=
+                $"{GetBaseIndent(2)}{_TAB}{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
             }
 
+            var editorCode =
+            $"#if UNITY_EDITOR" +
+            $"{GetBaseIndent(2)}public void SetMaster()" +
+            $"{GetBaseIndent(2)}{{" +
+            installCode +
+            $"{GetBaseIndent(2)}}}{_LINE}" +
+            $"#endif";
+            
             return
-            $"using System;{_LINE}" +
-            $"using System.Collections;{_LINE}" +
-            $"using System.Collections.Generic;{_LINE}" +
             $"using UnityEngine;{_LINE}" +
+            $"#if UNITY_EDITOR{_LINE}" +
+            $"using UnityEditor;{_LINE}" +
+            $"#endif{_LINE}" +
             $"{namespaceListCode}{_LINE}" +
             $"namespace MasterLoader{_LINE}" +
             $"{{" +
             $"{GetBaseIndent(1)}public class MasterInstaller : MonoBehaviour" +
             $"{GetBaseIndent(1)}{{" +
             masterListCode +
+            $"{_LINE}" +
+            editorCode +
             $"{GetBaseIndent(1)}}}" +
             $"{_LINE}}}";
         }
