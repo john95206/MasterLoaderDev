@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MasterLoader
+namespace MasterLoader.Core
 {
     [Serializable]
     public class Base

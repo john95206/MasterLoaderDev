@@ -6,9 +6,8 @@ using System;
 using MasterLoaderConfig;
 using System.Collections.Generic;
 using System.Linq;
-using MasterLoader.Utility;
 
-namespace MasterLoader
+namespace MasterLoader.Core
 {
     /// <summary>
     /// スプレッドシートからマスタを取得して自動生成したScriptableObjectに流し込むクラス
@@ -18,6 +17,7 @@ namespace MasterLoader
     {
         public static Config ConfigData;
 
+        public const string UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
         private const string _CONFIG_PATH = "Confing";
         public const string MASTER = "Master";
         private const string _API_URL =

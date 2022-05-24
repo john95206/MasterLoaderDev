@@ -4,7 +4,7 @@ using MasterLoaderConfig;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace MasterLoader
+namespace MasterLoader.Core
 {
     public class MasterLoadWindow : EditorWindow
     {

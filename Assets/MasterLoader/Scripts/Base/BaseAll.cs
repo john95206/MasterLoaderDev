@@ -1,4 +1,4 @@
-﻿namespace MasterLoader
+﻿namespace MasterLoader.Core
 {
     public class BaseAll
     {

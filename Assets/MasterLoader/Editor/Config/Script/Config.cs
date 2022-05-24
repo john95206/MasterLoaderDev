@@ -1,4 +1,4 @@
-﻿using MasterLoader;
+﻿using MasterLoader.Core;
 using System;
 using System.Collections.Generic;
 using UnityEditor;

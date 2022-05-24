@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MasterLoaderConfig;
 
-namespace MasterLoader
+namespace MasterLoader.Core
 {
     public class CodeGenerator
     {
@@ -20,7 +20,6 @@ namespace MasterLoader
         }
 
         public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
-        private const string _UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
         private static List<EnumValue> _enumValues = new List<EnumValue>();
 
         private const string _NAMESPACE = "MasterLoader";
