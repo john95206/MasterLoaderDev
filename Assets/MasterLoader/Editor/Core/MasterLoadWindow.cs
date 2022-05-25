@@ -158,13 +158,30 @@ namespace MasterLoader.Core
         private void EditMasterValueList(ValueAction action, Config configData)
         {
             var list = configData.CreatingMasterValueList;
+            var currentIndex = list.IndexOf(action.Value);
             switch (action.Status)
             {
                 case ValueStatus.None:
                     return;
                 case ValueStatus.Up:
+                    var upIndex = list.IndexOf(action.Value) - 1;
+                    if(upIndex < 0)
+                    {
+                        break;
+                    }
+                    var upCache = list[upIndex];
+                    list[upIndex] = action.Value;
+                    list[currentIndex] = upCache;
                     break;
                 case ValueStatus.Down:
+                    var downIndex = list.IndexOf(action.Value) + 1;
+                    if(downIndex >= list.Count)
+                    {
+                        break;
+                    }
+                    var downCache = list[downIndex];
+                    list[downIndex] = action.Value;
+                    list[currentIndex] = downCache;
                     break;
                 case ValueStatus.Delete:
                     list.Remove(action.Value);
@@ -177,10 +194,10 @@ namespace MasterLoader.Core
                     }
                     else
                     {
-                        var index = list.IndexOf(action.Value) + 1;
-                        if(index < list.Count)
+                        var addIndex = list.IndexOf(action.Value) + 1;
+                        if(addIndex < list.Count)
                         {
-                            list.Insert(index, new MasterValue { });
+                            list.Insert(addIndex, new MasterValue { });
                         }
                         else
                         {
