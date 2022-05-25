@@ -294,7 +294,7 @@ namespace MasterLoader.Core
                         var returnConfig = JsonUtility.FromJson<Config>(json);
                         ConfigData.SheetUrl = returnConfig.SheetUrl;
                         ConfigData.Masters = returnConfig.Masters;
-                        Debug.Log("MasterLoader Info: Creating Sheet has completed.");
+                        Debug.Log($"MasterLoader Info: Creating Sheet has completed.\n<color=cyan>{returnConfig.SheetUrl}</color>");
                         foreach(var m in ConfigData.Masters)
                         {
                             Debug.Log($"MasterLoader Info: sheet '{m}' has created.");
