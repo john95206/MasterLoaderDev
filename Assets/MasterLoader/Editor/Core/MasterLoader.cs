@@ -287,6 +287,10 @@ namespace MasterLoader.Core
                     {
                         EditorUtility.ClearProgressBar();
                         var json = request.downloadHandler.text;
+                        if (json.Contains("<!DOCTYPE html>"))
+                        {
+                            throw new Exception(json);
+                        }
                         var returnConfig = JsonUtility.FromJson<Config>(json);
                         ConfigData.SheetUrl = returnConfig.SheetUrl;
                         ConfigData.Masters = returnConfig.Masters;
