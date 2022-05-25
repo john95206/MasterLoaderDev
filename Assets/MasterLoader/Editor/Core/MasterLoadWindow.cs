@@ -214,6 +214,10 @@ namespace MasterLoader.Core
         {
             var status = ValueStatus.None;
             var typeIndex = ArrayUtility.IndexOf(_TYPE_LABELS, _value.Type);
+            if(typeIndex < 0)
+            {
+                typeIndex = 0;
+            }
 
             using(new EditorGUILayout.HorizontalScope())
             {
