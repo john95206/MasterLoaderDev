@@ -7,6 +7,6 @@ namespace MasterLoaderConfig
     {
         public string VariableName;
         public string Type;
-        public string Value;
+        public string Comment;
     }
 }

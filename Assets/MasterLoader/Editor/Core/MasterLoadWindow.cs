@@ -64,7 +64,7 @@ namespace MasterLoader.Core
         private bool _acceptedDriveUrl = false;
         private string _sheetUrl = string.Empty;
         private string _nameSpace = string.Empty;
-        private int sheetIndex = 0;
+        private int _sheetIndex = 0;
         private string _masterName = string.Empty;
 
         private const string _DRIVE_URL = "https://drive.google.com/drive/";
@@ -195,15 +195,15 @@ namespace MasterLoader.Core
 
         private ValueAction DrawValue(MasterValue _value, int count)
         {
-            var typeIndex = 0;
             var status = ValueStatus.None;
+            var typeIndex = ArrayUtility.IndexOf(_TYPE_LABELS, _value.Type);
 
             using(new EditorGUILayout.HorizontalScope())
             {
                 _value.VariableName = EditorGUILayout.TextField("Name", _value.VariableName);
                 typeIndex = EditorGUILayout.Popup(typeIndex, _TYPE_LABELS);
                 _value.Type = _TYPE_LABELS[typeIndex];
-                _value.Value = EditorGUILayout.TextField("Value", _value.Value);
+                _value.Comment = EditorGUILayout.TextField("Comment", _value.Comment);
                 if(count > 0)
                 {
                     if (GUILayout.Button("▲"))
@@ -356,9 +356,9 @@ namespace MasterLoader.Core
                 return;
             }
             configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
-            if (sheetIndex != configData.SheetIndex)
+            if (_sheetIndex != configData.SheetIndex)
             {
-                sheetIndex = configData.SheetIndex;
+                _sheetIndex = configData.SheetIndex;
                 _isDirty = true;
             }
 
