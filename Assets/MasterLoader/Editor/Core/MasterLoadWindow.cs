@@ -440,6 +440,8 @@ namespace MasterLoader.Core
         {
             DrawLine();
 
+            DrawOpenUrlButton(config);
+
             EditorGUILayout.Space();
 
             var needInstaller = config.NeedInstaller;
@@ -448,6 +450,21 @@ namespace MasterLoader.Core
             {
                 config.NeedInstaller = needInstaller;
                 _isDirty = true;
+            }
+        }
+
+        private void DrawOpenUrlButton(Config config)
+        {
+            if (string.IsNullOrEmpty(config.SheetUrl))
+            {
+                return;
+            }
+
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Open Created Sheet"))
+            {
+                MasterLoader.JumpCreatedSheet(config.SheetUrl);
             }
         }
 

@@ -312,6 +312,11 @@ namespace MasterLoader.Core
             }
         }
 
+        public static void JumpCreatedSheet(string sheetUrl)
+        {
+            Application.OpenURL(sheetUrl);
+        }
+
         public static bool GetSheets(string sheetUrl)
         {
             var url = $"{_API_URL}function=GetSheets&{_URL}={sheetUrl}";
