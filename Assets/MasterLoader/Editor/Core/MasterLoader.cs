@@ -223,9 +223,9 @@ namespace MasterLoader.Core
             }
             ConfigData.WaitCreateMaster = false;
             SaveConfig();
-            foreach(var target in ConfigData.LoadedResultList)
+            foreach (var target in ConfigData.LoadedResultList)
             {
-                var assetPath = AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder);
+                var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder)}/{target.Name}.asset";
                 var soMaster = Utility.Utility.GetAssetPathObject(assetPath, target.Name);
                 if (soMaster == null)
                 {
