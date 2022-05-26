@@ -72,7 +72,11 @@ namespace MasterLoader.Core
         [MenuItem("Window/MasterLoader")]
         static void Open()
         {
+#if UNITY_2018_1_OR_NEWER
+            GetWindow<MasterLoadWindow>(title: "MasterLoader");
+#else
             GetWindow<MasterLoadWindow>();
+#endif
         }
 
         private void OnEnable()
