@@ -385,13 +385,13 @@ namespace MasterLoader.Core
                 }
 
                 masterListCode +=
-                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {masterName} {{ get {{ return _{masterName} }} }}" +
+                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {publicMasterName} {{ get {{ return _{masterName}; }} }}" +
                 $"{GetBaseIndent(2)}[SerializeField]" +
                 $"{GetBaseIndent(2)}private {masterName}{MasterLoader.MASTER} _{masterName};";
 
                 var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder)}/{masterName}.asset\"";
                 installCode +=
-                $"{GetBaseIndent(2)}{_TAB}{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
+                $"{GetBaseIndent(2)}{_TAB}_{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
             }
 
             var editorCode =
