@@ -384,6 +384,8 @@ namespace MasterLoader.Core
                     $"using {nameSpace};{_LINE}";
                 }
 
+                var initial = masterName[0];
+                var publicMasterName = char.ToUpper(initial) + masterName.Substring(1);
                 masterListCode +=
                 $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {publicMasterName} {{ get {{ return _{masterName}; }} }}" +
                 $"{GetBaseIndent(2)}[SerializeField]" +
