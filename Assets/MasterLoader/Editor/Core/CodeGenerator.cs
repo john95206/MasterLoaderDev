@@ -364,6 +364,10 @@ namespace MasterLoader.Core
 
             $"{GetBaseIndent(1)}{_TAB}private void OutputParseErrorLog(string s, string type)" +
             $"{GetBaseIndent(1)}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}if (string.IsNullOrEmpty(s))" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}{_TAB}return;" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}}}" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
             $"{GetBaseIndent(1)}{_TAB}}}" +
             $"{GetBaseIndent(1)}}}" +
