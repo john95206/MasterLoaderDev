@@ -5,6 +5,7 @@ using UnityEditor.Callbacks;
 using System;
 using MasterLoaderConfig;
 using System.Linq;
+using System.IO;
 
 namespace MasterLoader.Core
 {
@@ -18,7 +19,7 @@ namespace MasterLoader.Core
 
         public const string UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
         private const string _CONFIG_PATH = "Confing";
-        private const string _INSTALLER_PATH = "Assets/MasterLoader/Prefab/MasterInstaller.prefab";
+        private const string _INSTALLER_PATH = "Assets/MasterLoader/Prefab";
         public const string MASTER = "Master";
         private const string _API_URL =
             "https://script.google.com/macros/s/AKfycbwjx-pDNW89Hzi0SV_hGHzVhOMt2_v6K6r4S9Txd_JTuiilzxjHOqjwo3IYcm7PnVWGZQ/exec?";
@@ -243,11 +244,17 @@ namespace MasterLoader.Core
             {
                 return;
             }
-            var installer = AssetDatabase.LoadMainAssetAtPath(_INSTALLER_PATH) as GameObject;
-            if(installer == null)
+            var installer = AssetDatabase.LoadMainAssetAtPath($"{_INSTALLER_PATH}/MasterInstaller.prefab") as GameObject;
+            if (installer == null)
             {
-                Debug.LogError("MasterLoader Info: Not found Installer");
-                return;
+                if (!Directory.Exists($"{_INSTALLER_PATH}/"))
+                {
+                    Directory.CreateDirectory($"{_INSTALLER_PATH}/");
+                }
+                var go = new GameObject();
+                go.AddComponent<MasterInstaller>();
+                installer = PrefabUtility.SaveAsPrefabAsset(go, $"{_INSTALLER_PATH}/MasterInstaller.prefab");
+                DestroyImmediate(go);
             }
             var component = installer.GetComponent<MasterInstaller>();
             component.SetMaster();
