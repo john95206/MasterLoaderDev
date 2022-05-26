@@ -123,8 +123,12 @@ namespace MasterLoader.Core
                     {
                         EditorUtility.DisplayProgressBar("Getting Master Data...", $"{request.downloadProgress * 100}%", request.downloadProgress);
                     }
-
+#if UNITY_2020_1_OR_NEWER
+                    if(request.result == UnityWebRequest.Result.ConnectionError ||
+                        request.result == UnityWebRequest.Result.ProtocolError)
+#else
                     if (request.isHttpError || request.isNetworkError)
+#endif
                     {
                         Debug.LogError("MasterLoader Info: NetWork Error.");
                         throw new Exception(request.error);
@@ -276,8 +280,12 @@ namespace MasterLoader.Core
                     {
                         EditorUtility.DisplayProgressBar("Creating MasterSheet...", $"{request.downloadProgress * 100}%", request.downloadProgress);
                     }
-
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                        request.result == UnityWebRequest.Result.ProtocolError)
+#else
                     if (request.isHttpError || request.isNetworkError)
+#endif
                     {
                         EditorUtility.ClearProgressBar();
                         Debug.Log("MasterLoader Info: Request has failed.");
@@ -331,8 +339,12 @@ namespace MasterLoader.Core
                     {
                         EditorUtility.DisplayProgressBar("Fetching Master Name...", $"{request.downloadProgress * 100}%", request.downloadProgress);
                     }
-
+#if UNITY_2020_1_OR_NEWER
+                    if (request.result == UnityWebRequest.Result.ConnectionError ||
+                        request.result == UnityWebRequest.Result.ProtocolError)
+#else
                     if (request.isHttpError || request.isNetworkError)
+#endif
                     {
                         EditorUtility.ClearProgressBar();
                         Debug.Log("MasterLoader Info: Request has failed.");
