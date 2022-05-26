@@ -343,7 +343,7 @@ namespace MasterLoader.Core
             $"{{" +
             $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
-            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {masterProperty} => _{masterProperty};" +
+            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {ReplacePublicName(masterProperty)} => _{masterProperty};" +
             $"{GetBaseIndent(1)}{_TAB}[SerializeField]" +
             $"{GetBaseIndent(1)}{_TAB}private List<{masterName}> _{masterProperty} = new List<{masterName}>();{_LINE}" +
 
@@ -393,10 +393,8 @@ namespace MasterLoader.Core
                     $"using {nameSpace};{_LINE}";
                 }
 
-                var initial = masterName[0];
-                var publicMasterName = char.ToUpper(initial) + masterName.Substring(1);
                 masterListCode +=
-                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {publicMasterName} {{ get {{ return _{masterName}; }} }}" +
+                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {ReplacePublicName(masterName)} {{ get {{ return _{masterName}; }} }}" +
                 $"{GetBaseIndent(2)}[SerializeField]" +
                 $"{GetBaseIndent(2)}private {masterName}{MasterLoader.MASTER} _{masterName};";
 
@@ -428,6 +426,16 @@ namespace MasterLoader.Core
             editorCode +
             $"{GetBaseIndent(1)}}}" +
             $"{_LINE}}}";
+        }
+
+        private static string ReplacePublicName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+            var initial = name[0];
+            return char.ToUpper(initial) + name.Substring(1);
         }
 
         private static string GetBaseIndent(int num = 4)
