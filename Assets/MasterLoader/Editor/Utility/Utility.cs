@@ -25,12 +25,9 @@ namespace MasterLoader.Utility
                     }
                     if (char.IsSymbol(t))
                     {
-                        for(var v = 0; i < validSymbols.Length; i++)
+                        if (!t.IsValidSymbol())
                         {
-                            if (t == validSymbols[v])
-                            {
-                                return false;
-                            }
+                            return false;
                         }
                     }
                 }
