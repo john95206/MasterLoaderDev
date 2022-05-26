@@ -57,7 +57,12 @@ namespace MasterLoader.Core
             }
             if (!Directory.Exists(AssetDatabase.GetAssetPath(config.MasterPathFolder)))
             {
-                Directory.CreateDirectory(AssetDatabase.GetAssetPath(config.MasterPathFolder));
+                var path = AssetDatabase.GetAssetPath(config.MasterPathFolder);
+                if (string.IsNullOrEmpty(path))
+                {
+                    path = "Assets/MasterLoader/Master";
+                }
+                Directory.CreateDirectory(path);
             }
             var body = string.Empty;
             for (var i = 0; i < typeList.Length; i++)
