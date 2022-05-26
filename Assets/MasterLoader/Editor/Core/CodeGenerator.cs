@@ -19,6 +19,16 @@ namespace MasterLoader.Core
             public List<string> ValueList = new List<string>();
         }
 
+        private static string _WARNING_MESSAGE = $"/*{_LINE}" +
+$"* ---------------------------------------------{_LINE}" +
+$"*this Code is Auto Generated.{_LINE}" +
+$"* All Changes will be nothing when regenerated.{_LINE}" +
+$"* ---------------------------------------------{_LINE}" +
+$"* これは自動生成コードです。{_LINE}" +
+$"* このコードに行った変更は自動生成時に破棄されます。{_LINE}" +
+$"* ---------------------------------------------{_LINE}" +
+$"*/{_LINE}{_LINE}";
+
         public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
         private static List<EnumValue> _enumValues = new List<EnumValue>();
 
@@ -98,7 +108,7 @@ namespace MasterLoader.Core
                 body += parameter;
             }
 
-            var rowCode = string.Empty;
+            var rowCode = _WARNING_MESSAGE;
 
             var parameterCode = string.Empty;
 
@@ -111,11 +121,11 @@ namespace MasterLoader.Core
                     throw new Exception($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                 }
 
-                parameterCode = GenerateParameterCode(typeList, switchCode);
+                parameterCode += GenerateParameterCode(typeList, switchCode);
 
                 AddEnumList(valueList, enumIndexList, typeList, parameterList);
 
-                rowCode =
+                rowCode +=
                 $"using System;{_LINE}" +
                 $"namespace {config.NameSpace}{_LINE}" +
                 $"{{" +
@@ -138,7 +148,7 @@ namespace MasterLoader.Core
                 var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, config.NameSpace, setDataCode);
-                var installerCode = string.Empty;
+                var installerCode = _WARNING_MESSAGE;
                 var masters = new List<string>();
                 for (var i = 0; i < config.Masters.Length; i++)
                 {
@@ -150,7 +160,7 @@ namespace MasterLoader.Core
                     }
                     masters.Add(name);
                 }
-                installerCode = GenerateInstallerCode(config);
+                installerCode += GenerateInstallerCode(config);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
                 var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
@@ -336,6 +346,7 @@ namespace MasterLoader.Core
         private static string GenerateMasterCode(string masterName, string Master, string masterProperty, string nameSpace, string setDataCode)
         {
             return
+            _WARNING_MESSAGE +
             $"using UnityEngine;{_LINE}" +
             $"using System.Collections.Generic;{_LINE}" +
             $"using System;{_LINE}{_LINE}" +
