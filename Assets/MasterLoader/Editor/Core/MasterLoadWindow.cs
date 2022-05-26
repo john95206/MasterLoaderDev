@@ -376,7 +376,11 @@ namespace MasterLoader.Core
             {
                 return;
             }
-            configData.SheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
+            if(configData.SheetIndex >= configData.Masters.Length)
+            {
+                configData.SheetIndex = 0;
+            }
+            _sheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
             if (_sheetIndex != configData.SheetIndex)
             {
                 _sheetIndex = configData.SheetIndex;
