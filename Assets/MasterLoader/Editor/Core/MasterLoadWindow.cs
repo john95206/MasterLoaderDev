@@ -289,7 +289,7 @@ namespace MasterLoader.Core
                 _value.Type = _TYPE_LABELS[typeIndex];
                 GUILayout.Label("Comment", GUILayout.MaxWidth(70));
 
-                _value.Comment = GUILayout.TextField(_value.Comment, GUILayout.MaxWidth(100));
+                _value.Comment = GUILayout.TextField(_value.Comment);
                 if (count > 0)
                 {
                     if (GUILayout.Button("▲", GUILayout.Width(30)))
