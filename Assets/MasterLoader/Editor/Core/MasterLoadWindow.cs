@@ -181,7 +181,8 @@ namespace MasterLoader.Core
                 }
                 configData.CreatingMasterValueList.Add(new MasterValue { });
             }
-            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, GUI.skin.box, GUILayout.MaxWidth(500)))
+            var style = GUI.skin.box;
+            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, style, GUILayout.MaxWidth(500)))
             {
                 var actions = new List<ValueAction>();
                 for (var i = 0; i < configData.CreatingMasterValueList.Count; i++)
