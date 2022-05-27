@@ -270,8 +270,6 @@ namespace MasterLoader.Core
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.Space();
-
                 var inputtedName = TextField("Name", _value?.VariableName ?? string.Empty, labelWidth: 40, fieldWidth: 100);
                 if (!Utility.Utility.OnValidateInputedValue(inputtedName, out var name))
                 {
@@ -307,8 +305,6 @@ namespace MasterLoader.Core
                 {
                     status = ValueStatus.Add;
                 }
-
-                EditorGUILayout.Space();
             }
             return new ValueAction
             {
@@ -319,16 +315,14 @@ namespace MasterLoader.Core
 
         private bool DrawDriveUrlField(Config configData)
         {
-            var text = !_acceptedDriveUrl ?
-                "Get start to enter your Google Drive folder URL." :
-                "Accepted Drive URL!";
-            EditorGUILayout.LabelField(text, GUILayout.Width(300));
+            var text = "Get start to enter your Google Drive folder URL.";
+            EditorGUILayout.LabelField(text, GUILayout.ExpandWidth(true));
 
             EditorGUILayout.Space();
 
             var driveUrl = configData.DriveUrl;
 
-            configData.DriveUrl = EditorGUILayout.TextField("Drive URL", configData.DriveUrl);
+            configData.DriveUrl = TextField("Drive URL", configData.DriveUrl, fieldWidth: 400);
 
             if (driveUrl != configData.DriveUrl)
             {
