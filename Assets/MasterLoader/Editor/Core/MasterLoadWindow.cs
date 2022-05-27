@@ -503,7 +503,7 @@ namespace MasterLoader.Core
             {
                 _isDirty = true;
             }
-            EditorGUILayout.LabelField($"Master will be generated to: {configData.MasterPathFolder}");
+            EditorGUILayout.LabelField($"Master will be generated to: {AssetDatabase.GetAssetPath(configData.MasterPathFolder)}");
 
             EditorGUILayout.Space();
         }
