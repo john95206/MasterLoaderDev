@@ -8,7 +8,7 @@ namespace MasterLoader.Core
 {
     public class MasterLoadWindow : EditorWindow
     {
-        private static class Styles
+        private static class TabStyles
         {
             private static GUIContent[] _tabToggles = null;
             public static GUIContent[] TabToggles
@@ -92,9 +92,9 @@ namespace MasterLoader.Core
                 _tabStatus = (TabStatus)GUILayout.Toolbar
                 (
                     (int)_tabStatus,
-                    Styles.TabToggles,
-                    Styles.TabButtonStyle,
-                    Styles.TabButtonSize
+                    TabStyles.TabToggles,
+                    TabStyles.TabButtonStyle,
+                    TabStyles.TabButtonSize
                 );
             }
             EditorGUILayout.Space();
@@ -137,20 +137,20 @@ namespace MasterLoader.Core
                 }
                 configData.CreatingMasterValueList.Add(new MasterValue { });
             }
-            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos))
+            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, GUI.skin.box, GUILayout.MaxWidth(500)))
             {
                 var actions = new List<ValueAction>();
-                for(var i = 0; i < configData.CreatingMasterValueList.Count; i++)
+                for (var i = 0; i < configData.CreatingMasterValueList.Count; i++)
                 {
                     var action = DrawValue(configData.CreatingMasterValueList[i], configData.CreatingMasterValueList.Count);
-                    if(action.Status == ValueStatus.None)
+                    if (action.Status == ValueStatus.None)
                     {
                         continue;
                     }
                     actions.Add(action);
                 }
 
-                for(var i = 0; i < actions.Count; i++)
+                for (var i = 0; i < actions.Count; i++)
                 {
                     EditMasterValueList(actions[i], configData);
                 }
