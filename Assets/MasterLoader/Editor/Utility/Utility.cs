@@ -11,7 +11,7 @@ namespace MasterLoader.Utility
             return AssetDatabase.LoadMainAssetAtPath(assetPath);
         }
 
-        public static bool OnValidateInputedValue(string text)
+        public static bool OnValidateInputedValue(string text, out string value)
         {
             for(var i = 0; i < text.Length; i++)
             {
@@ -21,30 +21,37 @@ namespace MasterLoader.Utility
                 {
                     if (char.IsNumber(t))
                     {
+                        value = text;
                         return false;
                     }
-                    if (char.IsSymbol(t))
+                    if (!char.IsLetter(t))
                     {
-                        if (!t.IsValidSymbol())
+                        // 許せる記号だったら通す
+                        if (t.IsValidSymbol())
                         {
-                            return false;
+                            continue;
                         }
+                        value = text;
+                        return false;
                     }
+                    continue;
                 }
                 // 二文字目以降が数字やアルファベットでも _ でもなかったら弾く
                 if (!char.IsLetterOrDigit(t) && !t.IsValidSymbol())
                 {
+                    value = text;
                     return false;
                 }
             }
             text.Replace(" ", string.Empty);
             text.Replace("　", string.Empty);
+            value = text;
             return true;
         }
 
         public static bool IsValidSymbol(this char c)
         {
-            return c != '_';
+            return c == '_';
         }
     }
 }
