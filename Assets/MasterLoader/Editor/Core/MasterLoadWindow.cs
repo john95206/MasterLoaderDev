@@ -392,7 +392,9 @@ namespace MasterLoader.Core
             var isValid = _sheetUrl.StartsWith("https://docs.google.com/spreadsheets/");
             using (new EditorGUILayout.HorizontalScope())
             {
-                configData.SheetUrl = EditorGUILayout.TextField("Sheet URL", configData.SheetUrl, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+                GUILayout.Label("Sheet URL", GUILayout.Width(100));
+
+                configData.SheetUrl = GUILayout.TextField(configData.SheetUrl, GUILayout.MaxWidth(300));
 
                 if(_sheetUrl != configData.SheetUrl)
                 {
@@ -512,15 +514,7 @@ namespace MasterLoader.Core
 
             DrawOpenUrlButton(config);
 
-            EditorGUILayout.Space();
-
-            var needInstaller = config.NeedInstaller;
-            needInstaller = EditorGUILayout.Toggle("Create MasterInstaller?", needInstaller);
-            if(needInstaller != config.NeedInstaller)
-            {
-                config.NeedInstaller = needInstaller;
-                _isDirty = true;
-            }
+            //MasterLoader.ConfigData.Language = (MasterLoaderLanguage)EditorGUILayout.EnumPopup("Langage", MasterLoader.ConfigData.Language);
         }
 
         private void DrawOpenUrlButton(Config config)
@@ -532,7 +526,7 @@ namespace MasterLoader.Core
 
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Open Created Sheet"))
+            if (GUILayout.Button("Open Current Master Sheet", GUILayout.ExpandWidth(false)))
             {
                 MasterLoader.JumpCreatedSheet(config.SheetUrl);
             }
@@ -541,10 +535,6 @@ namespace MasterLoader.Core
         private void OnGUI()
         {
             var configData = MasterLoader.ConfigData;
-
-            EditorGUILayout.Space();
-
-            MasterLoader.ConfigData.Language = (MasterLoaderLanguage)EditorGUILayout.EnumPopup("Langage", MasterLoader.ConfigData.Language);
 
             EditorGUILayout.Space();
 
