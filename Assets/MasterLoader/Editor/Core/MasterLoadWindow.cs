@@ -332,30 +332,37 @@ namespace MasterLoader.Core
 
             var isDriveUrl = driveUrl.StartsWith(_DRIVE_URL);
 
-            if (string.IsNullOrEmpty(driveUrl))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField("Enter your drive URL", GUILayout.Width(200));
-                return false;
-            }
-            else if (!isDriveUrl)
-            {
-                EditorGUILayout.LabelField("this URL is not drive ones", GUILayout.Width(200));
-                return false;
-            }
-            else if (isDriveUrl &&
-                driveUrl.IndexOf("folders") < 0)
-            {
-                EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.Width(250));
-                return false;
-            }
-            else if (isDriveUrl && driveUrl.IndexOf("folders") > -1)
-            {
-                return true;
-            }
-            else
-            {
-                EditorGUILayout.LabelField("unexpected URL.", GUILayout.Width(120));
-                return false;
+                if (string.IsNullOrEmpty(driveUrl))
+                {
+                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                    EditorGUILayout.LabelField("Enter your drive URL", GUILayout.ExpandWidth(true));
+                    return false;
+                }
+                else if (!isDriveUrl)
+                {
+                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                    EditorGUILayout.LabelField("this URL is not drive ones", GUILayout.ExpandWidth(true));
+                    return false;
+                }
+                else if (isDriveUrl &&
+                    driveUrl.IndexOf("folders") < 0)
+                {
+                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                    EditorGUILayout.LabelField("this URL is drive ones, but not drive floder.", GUILayout.ExpandWidth(true));
+                    return false;
+                }
+                else if (isDriveUrl && driveUrl.IndexOf("folders") > -1)
+                {
+                    return true;
+                }
+                else
+                {
+                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                    EditorGUILayout.LabelField("unexpected URL.", GUILayout.ExpandWidth(true));
+                    return false;
+                }
             }
         }
 
