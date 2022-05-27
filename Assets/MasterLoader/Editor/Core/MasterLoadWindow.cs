@@ -182,7 +182,7 @@ namespace MasterLoader.Core
                 configData.CreatingMasterValueList.Add(new MasterValue { });
             }
             var style = GUI.skin.box;
-            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, style, GUILayout.MaxWidth(500)))
+            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, style))
             {
                 var actions = new List<ValueAction>();
                 for (var i = 0; i < configData.CreatingMasterValueList.Count; i++)
@@ -270,7 +270,9 @@ namespace MasterLoader.Core
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                var inputtedName = TextField("Name", _value?.VariableName ?? string.Empty, labelWidth: 40, fieldWidth: 100);
+                GUILayout.Label("Name", GUILayout.MaxWidth(40));
+
+                var inputtedName = GUILayout.TextField(_value?.VariableName ?? string.Empty, GUILayout.MaxWidth(100));
                 if (!Utility.Utility.OnValidateInputedValue(inputtedName, out var name))
                 {
                     _invalidCount++;
@@ -285,7 +287,9 @@ namespace MasterLoader.Core
                 typeIndex = EditorGUILayout.Popup(typeIndex, _TYPE_LABELS, GUILayout.Width(50));
 
                 _value.Type = _TYPE_LABELS[typeIndex];
-                _value.Comment = TextField("Comment", _value.Comment, labelWidth: 70);
+                GUILayout.Label("Comment", GUILayout.MaxWidth(70));
+
+                _value.Comment = GUILayout.TextField(_value.Comment, GUILayout.MaxWidth(100));
                 if (count > 0)
                 {
                     if (GUILayout.Button("▲", GUILayout.Width(30)))
