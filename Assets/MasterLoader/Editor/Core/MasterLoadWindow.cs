@@ -60,6 +60,7 @@ namespace MasterLoader.Core
         private TabStatus _tabStatus;
         private Vector2 _scrollPos;
         private bool _isDirty = false;
+        private int _invalidCount = 0;
 
         private bool _acceptedDriveUrl = false;
         private string _sheetUrl = string.Empty;
@@ -82,6 +83,18 @@ namespace MasterLoader.Core
         private void OnEnable()
         {
             MasterLoader.UpdateConfig();
+        }
+
+        private string TextField(string label, string text, float labelWidth = 100, float fieldWidth = 150)
+        {
+            var value = string.Empty;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label(label, GUILayout.MaxWidth(labelWidth));
+
+                value = GUILayout.TextField(text, GUILayout.MaxWidth(fieldWidth));
+            }
+            return value;
         }
 
         private void DrawTabButtons()
@@ -109,7 +122,21 @@ namespace MasterLoader.Core
                 return;
             }
 
-            _masterName = EditorGUILayout.TextField("Master name", _masterName);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var input = TextField("Master name", _masterName);
+                if (!string.IsNullOrEmpty(input))
+                {
+                    if (!Utility.Utility.OnValidateInputedValue(input, out var text))
+                    {
+                        _invalidCount++;
+                        {
+                            GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                        }
+                    }
+                    _masterName = text;
+                }
+            }
 
             if (!string.IsNullOrEmpty(_masterName))
             {
@@ -117,14 +144,31 @@ namespace MasterLoader.Core
 
                 EditorGUILayout.Space();
 
-                var createButton = GUILayout.Button("Create", GUILayout.Width(50));
-                if (createButton)
+                using (new EditorGUI.DisabledGroupScope(_invalidCount > 0))
                 {
-                    var idIndex = configData.DriveUrl.LastIndexOf('/');
-                    var id = configData.DriveUrl.Substring(idIndex + 1);
-                    MasterLoader.CreateSpreadSheet(_masterName, id);
+                    var createButton = false;
+                    if (_invalidCount > 0)
+                    {
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            createButton = GUILayout.Button("Create", GUILayout.Width(50));
+                            GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                            GUILayout.Label($"{_invalidCount} invalid content exist.");
+                        }
+                    }
+                    else
+                    {
+                        createButton = GUILayout.Button("Create", GUILayout.Width(50));
+                    }
+                    if (createButton)
+                    {
+                        var idIndex = configData.DriveUrl.LastIndexOf('/');
+                        var id = configData.DriveUrl.Substring(idIndex + 1);
+                        MasterLoader.CreateSpreadSheet(_masterName, id);
+                    }
                 }
             }
+            _invalidCount = 0;
         }
 
         private void DrawMasterValueField(Config configData)
@@ -223,31 +267,47 @@ namespace MasterLoader.Core
                 typeIndex = 0;
             }
 
-            using(new EditorGUILayout.HorizontalScope())
+            using (new EditorGUILayout.HorizontalScope())
             {
-                _value.VariableName = EditorGUILayout.TextField("Name", _value.VariableName);
-                typeIndex = EditorGUILayout.Popup(typeIndex, _TYPE_LABELS);
-                _value.Type = _TYPE_LABELS[typeIndex];
-                _value.Comment = EditorGUILayout.TextField("Comment", _value.Comment);
-                if(count > 0)
+                EditorGUILayout.Space();
+
+                var inputtedName = TextField("Name", _value?.VariableName ?? string.Empty, labelWidth: 40, fieldWidth: 100);
+                if (!Utility.Utility.OnValidateInputedValue(inputtedName, out var name))
                 {
-                    if (GUILayout.Button("▲"))
+                    _invalidCount++;
+                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
+                }
+                else
+                {
+                    GUILayout.Box("", GUILayout.Width(20));
+                }
+                _value.VariableName = inputtedName;
+
+                typeIndex = EditorGUILayout.Popup(typeIndex, _TYPE_LABELS, GUILayout.Width(50));
+
+                _value.Type = _TYPE_LABELS[typeIndex];
+                _value.Comment = TextField("Comment", _value.Comment, labelWidth: 70);
+                if (count > 0)
+                {
+                    if (GUILayout.Button("▲", GUILayout.Width(30)))
                     {
                         status = ValueStatus.Up;
                     }
-                    else if (GUILayout.Button("▼"))
+                    else if (GUILayout.Button("▼", GUILayout.Width(30)))
                     {
                         status = ValueStatus.Down;
                     }
-                    else if (GUILayout.Button(" - "))
+                    else if (GUILayout.Button("-", GUILayout.Width(30)))
                     {
                         status = ValueStatus.Delete;
                     }
                 }
-                if(GUILayout.Button(" + "))
+                if (GUILayout.Button("+", GUILayout.Width(30)))
                 {
                     status = ValueStatus.Add;
                 }
+
+                EditorGUILayout.Space();
             }
             return new ValueAction
             {
