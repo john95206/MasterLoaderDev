@@ -125,17 +125,14 @@ namespace MasterLoader.Core
             using (new EditorGUILayout.HorizontalScope())
             {
                 var input = TextField("Master name", _masterName);
-                if (!string.IsNullOrEmpty(input))
+                if (!Utility.Utility.OnValidateInputedValue(input, out var text))
                 {
-                    if (!Utility.Utility.OnValidateInputedValue(input, out var text))
+                    _invalidCount++;
                     {
-                        _invalidCount++;
-                        {
-                            GUILayout.Box(EditorGUIUtility.IconContent("Error"));
-                        }
+                        GUILayout.Box(EditorGUIUtility.IconContent("Error"));
                     }
-                    _masterName = text;
                 }
+                _masterName = text;
             }
 
             if (!string.IsNullOrEmpty(_masterName))
