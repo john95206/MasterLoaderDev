@@ -240,10 +240,7 @@ namespace MasterLoader.Core
                 EditorUtility.SetDirty(soMaster);
                 Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
-            if (!ConfigData.NeedInstaller)
-            {
-                return;
-            }
+
             var installer = AssetDatabase.LoadMainAssetAtPath($"{_INSTALLER_PATH}/MasterInstaller.prefab") as GameObject;
             if (installer == null)
             {

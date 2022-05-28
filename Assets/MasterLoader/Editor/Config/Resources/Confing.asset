@@ -13,23 +13,19 @@ MonoBehaviour:
   m_Name: Confing
   m_EditorClassIdentifier: 
   Config:
-    DriveUrl: https://drive.google.com/drive/folders/1gha4Bi3sTXjCuZQuab-OYPs4jsFAxuMr
-    SheetUrl: https://docs.google.com/spreadsheets/d/1ZwYU-osH8fXICy4cFP_QsokN-l826ERJk1CuOjG5D3A/edit#gid=711625210
-    IsFetched: 1
-    SheetIndex: 1
-    Masters:
-    - testMaster
-    - second
-    CurrentMasterName: second
+    DriveUrl: 
+    SheetUrl: 
+    IsFetched: 0
+    SheetIndex: 0
+    Masters: []
+    CurrentMasterName: 
     Alerts: []
-    NameSpace: MasterLoader
+    NameSpace: 
+    MasterNamespaceList: []
     MasterPathFolder: {fileID: 102900000, guid: fee099c53a52e4e4aa5b2866b6f6504e,
       type: 3}
     WaitCreateMaster: 0
-    CreateInstaller: 1
+    NeedInstaller: 1
     Language: 0
     LoadedResultList: []
-    CreatingMasterValueList:
-    - VariableName: 
-      Type: int
-      Value: 
+    CreatingMasterValueList: []

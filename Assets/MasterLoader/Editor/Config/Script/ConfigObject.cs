@@ -6,10 +6,5 @@ namespace MasterLoaderConfig
     {
         //[HideInInspector]
         public Config Config;
-
-        public void SetData(Config config)
-        {
-            Config = config;
-        }
     }
 }
