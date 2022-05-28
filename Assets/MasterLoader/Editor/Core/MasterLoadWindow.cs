@@ -337,7 +337,6 @@ namespace MasterLoader.Core
             {
                 if (string.IsNullOrEmpty(driveUrl))
                 {
-                    GUILayout.Box(EditorGUIUtility.IconContent("Error"));
                     EditorGUILayout.LabelField("Enter your drive URL", GUILayout.ExpandWidth(true));
                     return false;
                 }
