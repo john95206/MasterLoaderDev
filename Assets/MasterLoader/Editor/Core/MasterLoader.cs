@@ -73,7 +73,7 @@ namespace MasterLoader.Core
             if (list.Count > 0)
             {
                 ConfigData.LoadedResultList.Clear();
-                Debug.LogWarning($"{nameof(list)} has old list, cleared.");
+                //Debug.LogWarning($"{nameof(list)} has old list, cleared.");
             }
             list.Add(result);
             return true;
@@ -274,7 +274,6 @@ namespace MasterLoader.Core
                 Name = masterName,
             };
             var valueJson = JsonUtility.ToJson(value);
-            Debug.Log(valueJson);
             var url = $"{_API_URL}function=CreateSheet&id={id}&values={valueJson}";
 
             try

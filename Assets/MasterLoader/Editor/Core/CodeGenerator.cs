@@ -203,7 +203,7 @@ $"*/{_LINE}{_LINE}";
                     if (GetPrime(i, typeList.Length) == enumIndex)
                     {
                         var value = valueList[i];
-                        Debug.Log(value);
+                        //Debug.Log(value);
                         var hasExisted = false;
                         if (_enumValues.Count > 0)
                         {
@@ -216,7 +216,7 @@ $"*/{_LINE}{_LINE}";
                                 }
                                 if (ev.ValueList.Contains(value))
                                 {
-                                    Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
+                                    //Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
                                     break;
                                 }
                                 ev.ValueList.Add(value);
@@ -267,7 +267,6 @@ $"*/{_LINE}{_LINE}";
                         $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
                         $"{GetBaseIndent(6)}}}";
                         enumIndexList.Add(parameterIndex);
-                        Debug.Log($"{parameterIndex} is enumIndex");
                         break;
                     default:
                         Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
@@ -295,13 +294,11 @@ $"*/{_LINE}{_LINE}";
             }
             foreach (var ev in _enumValues)
             {
-                Debug.Log($"MasterLoaderInfo: {ev.Parameter} enum generatable.");
                 var valuesString = string.Empty;
                 for (var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
                 {
                     valuesString +=
                     $"{GetBaseIndent(2)}{ev.ValueList[vIndex]},";
-                    Debug.Log($"{ev.ValueList[vIndex]}");
                 }
                 code += $"{_LINE}" +
                 $"{GetBaseIndent(1)}public enum {ev.Parameter.ToUpper()}" +
@@ -322,8 +319,6 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}{_TAB}var isDone = false;" +
             $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0 || doneIndex >= {length})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}Debug.Log(\"new Instance\");" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}Debug.Log(valueIndex);" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{masterProperty} = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +

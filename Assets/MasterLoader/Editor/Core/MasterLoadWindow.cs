@@ -561,7 +561,6 @@ namespace MasterLoader.Core
             }
             _isDirty = false;
             MasterLoader.SaveConfig();
-            Debug.Log("Saved Config");
         }
 
         private void DrawLine(bool isHorizontal = true)
