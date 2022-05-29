@@ -49,10 +49,6 @@ $"*/{_LINE}{_LINE}";
 
         public static bool Generate(Config config, Base result)
         {
-            if (string.IsNullOrEmpty(config.NameSpace))
-            {
-                config.NameSpace = _NAMESPACE;
-            }
             var masterName = result.Name;
             var typeList = result.Type;
             var commentList = result.Comment;
@@ -121,13 +117,17 @@ $"*/{_LINE}{_LINE}";
                     throw new Exception($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                 }
 
+                var nameSpace = string.IsNullOrEmpty(config.NameSpace) || config.NameSpace == _NAMESPACE ?
+                    string.Empty :
+                    $"namespace {config.NameSpace}";
+
                 parameterCode += GenerateParameterCode(typeList, switchCode);
 
                 AddEnumList(valueList, enumIndexList, typeList, parameterList);
 
                 rowCode +=
                 $"using System;{_LINE}" +
-                $"namespace {config.NameSpace}{_LINE}" +
+                $"{nameSpace}{_LINE}" +
                 $"{{" +
                 $"{GetBaseIndent(1)}[Serializable]" +
                 $"{GetBaseIndent(1)}public class {masterName}" +
