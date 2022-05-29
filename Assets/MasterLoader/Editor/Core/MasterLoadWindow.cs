@@ -451,7 +451,7 @@ namespace MasterLoader.Core
             {
                 configData.SheetIndex = 0;
             }
-            _sheetIndex = EditorGUILayout.Popup(configData.SheetIndex, configData.Masters);
+            _sheetIndex = EditorGUILayout.Popup("Target sheet", configData.SheetIndex, configData.Masters);
             if (_sheetIndex != configData.SheetIndex)
             {
                 _sheetIndex = configData.SheetIndex;
