@@ -172,19 +172,22 @@ namespace MasterLoader.Core
         {
             if(configData.CreatingMasterValueList.Count < 1)
             {
-                if (!GUILayout.Button("Start Editing Values"))
+                if (!GUILayout.Button("Start creating variables"))
                 {
                     return;
                 }
                 configData.CreatingMasterValueList.Add(new MasterValue { });
             }
+
+            GUILayout.Label("Decrlare master's variables if need.");
+
             var style = GUI.skin.box;
             using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, style, GUILayout.ExpandHeight(false)))
             {
                 var actions = new List<ValueAction>();
                 for (var i = 0; i < configData.CreatingMasterValueList.Count; i++)
                 {
-                    var action = DrawValue(configData.CreatingMasterValueList[i], configData.CreatingMasterValueList.Count);
+                    var action = DrawValue(configData.CreatingMasterValueList[i], configData.CreatingMasterValueList.Count, i);
                     if (action.Status == ValueStatus.None)
                     {
                         continue;
@@ -256,7 +259,7 @@ namespace MasterLoader.Core
             }
         }
 
-        private ValueAction DrawValue(MasterValue _value, int count)
+        private ValueAction DrawValue(MasterValue _value, int count, int index)
         {
             var status = ValueStatus.None;
             var typeIndex = ArrayUtility.IndexOf(_TYPE_LABELS, _value.Type);
