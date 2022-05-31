@@ -417,9 +417,9 @@ namespace MasterLoader.Core
             {
                 var asset = CreateInstance<ConfigObject>();
                 AssetDatabase.CreateAsset(asset, _CONFIG_PATH);
-                asset.hideFlags = HideFlags.NotEditable;
                 obj = asset;
             }
+            obj.hideFlags = HideFlags.NotEditable;
             return obj;
         }
 

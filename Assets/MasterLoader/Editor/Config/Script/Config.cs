@@ -11,6 +11,7 @@ namespace MasterLoaderConfig
         public string DriveUrl = string.Empty;
         public string SheetUrl = string.Empty;
         public bool IsFetched = false;
+        public int TabIndex = 0;
         public int SheetIndex = 0;
         public string[] Masters = new string[] { };
         public string CurrentMasterName = string.Empty;
