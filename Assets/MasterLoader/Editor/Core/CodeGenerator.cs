@@ -117,8 +117,8 @@ $"*/{_LINE}{_LINE}";
                     throw new Exception($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                 }
 
-                var nameSpace = string.IsNullOrEmpty(config.NameSpace) || config.NameSpace == _NAMESPACE ?
-                    string.Empty :
+                var nameSpace = string.IsNullOrEmpty(config.NameSpace) ?
+                    $"namespace {_NAMESPACE}" :
                     $"namespace {config.NameSpace}";
 
                 parameterCode += GenerateParameterCode(typeList, switchCode);
