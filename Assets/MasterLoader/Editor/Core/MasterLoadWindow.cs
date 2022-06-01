@@ -552,6 +552,12 @@ namespace MasterLoader.Core
                 DrawLoaderWindow(configData);
             }
 
+            if((int)_tabStatus != configData.TabIndex)
+            {
+                configData.TabIndex = (int)_tabStatus;
+                _isDirty = true;
+            }
+
             DrawConfig(configData);
 
             if (!_isDirty)
