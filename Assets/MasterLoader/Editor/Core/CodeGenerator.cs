@@ -394,9 +394,12 @@ $"*/{_LINE}{_LINE}";
                 var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
                 if (!recordedNameSpace.Contains(nameSpace))
                 {
-                    recordedNameSpace.Add(nameSpace);
-                    namespaceListCode +=
-                    $"using {nameSpace};{_LINE}";
+                    if(!string.IsNullOrEmpty(nameSpace))
+                    {
+                        recordedNameSpace.Add(nameSpace);
+                        namespaceListCode +=
+                        $"using {nameSpace};{_LINE}";
+                    }
                 }
 
                 masterListCode +=
