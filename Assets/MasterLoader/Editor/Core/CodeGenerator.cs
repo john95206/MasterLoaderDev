@@ -366,7 +366,7 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(1)}{_TAB}{_TAB}var _value = value;" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}while (_value >= length)" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}_value -= length;" +
+            $"{GetBaseIndent(1)}{_TAB}{_TAB}{_TAB}_value -= length;" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}}}" +
             $"{GetBaseIndent(1)}{_TAB}{_TAB}return _value;" +
             $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
