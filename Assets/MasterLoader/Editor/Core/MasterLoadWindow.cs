@@ -159,8 +159,8 @@ namespace MasterLoader.Core
                     }
                     if (createButton)
                     {
-                        var idIndex = configData.DriveUrl.LastIndexOf('/');
-                        var id = configData.DriveUrl.Substring(idIndex + 1);
+                        var idIndex = configData.DriveUrl_.LastIndexOf('/');
+                        var id = configData.DriveUrl_.Substring(idIndex + 1);
                         MasterLoader.CreateSpreadSheet(_masterName, id);
                     }
                 }
@@ -170,13 +170,13 @@ namespace MasterLoader.Core
 
         private void DrawMasterValueField(Config configData)
         {
-            if(configData.CreatingMasterValueList.Count < 1)
+            if(configData.CreatingMasterValueList_.Count < 1)
             {
                 if (!GUILayout.Button("Start creating variables"))
                 {
                     return;
                 }
-                configData.CreatingMasterValueList.Add(new MasterValue { });
+                configData.CreatingMasterValueList_.Add(new MasterValue { });
             }
 
             GUILayout.Label("Decrlare master's variables if need.");
@@ -185,9 +185,9 @@ namespace MasterLoader.Core
             using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPos, style, GUILayout.ExpandHeight(false)))
             {
                 var actions = new List<ValueAction>();
-                for (var i = 0; i < configData.CreatingMasterValueList.Count; i++)
+                for (var i = 0; i < configData.CreatingMasterValueList_.Count; i++)
                 {
-                    var action = DrawValue(configData.CreatingMasterValueList[i], configData.CreatingMasterValueList.Count, i);
+                    var action = DrawValue(configData.CreatingMasterValueList_[i], configData.CreatingMasterValueList_.Count, i);
                     if (action.Status == ValueStatus.None)
                     {
                         continue;
@@ -206,7 +206,7 @@ namespace MasterLoader.Core
 
         private void EditMasterValueList(ValueAction action, Config configData)
         {
-            var list = configData.CreatingMasterValueList;
+            var list = configData.CreatingMasterValueList_;
             var currentIndex = list.IndexOf(action.Value);
             switch (action.Status)
             {
@@ -324,13 +324,13 @@ namespace MasterLoader.Core
 
             EditorGUILayout.Space();
 
-            var driveUrl = configData.DriveUrl;
+            var driveUrl = configData.DriveUrl_;
 
-            configData.DriveUrl = TextField("Drive URL", configData.DriveUrl, fieldWidth: 400);
+            configData.DriveUrl_ = TextField("Drive URL", configData.DriveUrl_, fieldWidth: 400);
 
-            if (driveUrl != configData.DriveUrl)
+            if (driveUrl != configData.DriveUrl_)
             {
-                driveUrl = configData.DriveUrl;
+                driveUrl = configData.DriveUrl_;
                 _isDirty = true;
             }
 
@@ -373,7 +373,7 @@ namespace MasterLoader.Core
         {
             var isValid = DrawFetchWindow(configData);
 
-            if ((MasterLoader.ConfigData == null || !isValid) || !configData.IsFetched)
+            if ((MasterLoader.ConfigData == null || !isValid) || !configData.IsFetched_)
             {
                 return;
             }
@@ -397,11 +397,11 @@ namespace MasterLoader.Core
             {
                 GUILayout.Label("Sheet URL", GUILayout.Width(100));
 
-                configData.SheetUrl = GUILayout.TextField(configData.SheetUrl, GUILayout.MaxWidth(300));
+                configData.SheetUrl_ = GUILayout.TextField(configData.SheetUrl_, GUILayout.MaxWidth(300));
 
-                if(_sheetUrl != configData.SheetUrl)
+                if(_sheetUrl != configData.SheetUrl_)
                 {
-                    _sheetUrl = configData.SheetUrl;
+                    _sheetUrl = configData.SheetUrl_;
                 }
 
                 if (isValid)
@@ -413,19 +413,19 @@ namespace MasterLoader.Core
                         EditorUtility.SetDirty(this);
                         if (MasterLoader.GetSheets(_sheetUrl))
                         {
-                            configData.SheetUrl = _sheetUrl;
-                            configData.IsFetched = true;
+                            configData.SheetUrl_ = _sheetUrl;
+                            configData.IsFetched_ = true;
                         }
                         else
                         {
-                            configData.IsFetched = false;
+                            configData.IsFetched_ = false;
                         }
                         _isDirty = true;
                     }
                 }
                 else
                 {
-                    configData.IsFetched = false;
+                    configData.IsFetched_ = false;
                 }
             }
             if (string.IsNullOrEmpty(_sheetUrl))
@@ -443,18 +443,18 @@ namespace MasterLoader.Core
 
         private void DrawMasterCreateWindow(Config configData)
         {
-            if (!configData.IsFetched)
+            if (!configData.IsFetched_)
             {
                 return;
             }
-            if(configData.SheetIndex >= configData.Masters.Length)
+            if(configData.SheetIndex_ >= configData.Masters_.Length)
             {
-                configData.SheetIndex = 0;
+                configData.SheetIndex_ = 0;
             }
-            _sheetIndex = EditorGUILayout.Popup("Target sheet", configData.SheetIndex, configData.Masters);
-            if (_sheetIndex != configData.SheetIndex)
+            _sheetIndex = EditorGUILayout.Popup("Target sheet", configData.SheetIndex_, configData.Masters_);
+            if (_sheetIndex != configData.SheetIndex_)
             {
-                _sheetIndex = configData.SheetIndex;
+                _sheetIndex = configData.SheetIndex_;
                 _isDirty = true;
             }
 
@@ -463,17 +463,17 @@ namespace MasterLoader.Core
 
             EditorGUILayout.Space();
 
-            var currentMasterName = configData.CurrentMasterName;
-            configData.CurrentMasterName = configData.Masters[configData.SheetIndex];
-            if (currentMasterName != configData.CurrentMasterName)
+            var currentMasterName = configData.CurrentMasterName_;
+            configData.CurrentMasterName_ = configData.Masters_[configData.SheetIndex_];
+            if (currentMasterName != configData.CurrentMasterName_)
             {
                 _isDirty = true;
             }
 
-            var createMasterButton = GUILayout.Button($"Create {configData.CurrentMasterName} Master");
+            var createMasterButton = GUILayout.Button($"Create {configData.CurrentMasterName_} Master");
             if (createMasterButton)
             {
-                MasterLoader.CreateMaster(configData.CurrentMasterName);
+                MasterLoader.CreateMaster(configData.CurrentMasterName_);
             }
             var createAllButton = GUILayout.Button($"Create All Master");
             if (createAllButton)
@@ -490,23 +490,23 @@ namespace MasterLoader.Core
 
             EditorGUILayout.Space();
 
-            _nameSpace = EditorGUILayout.TextField("namespace", configData.NameSpace);
-            if(_nameSpace != configData.NameSpace)
+            _nameSpace = EditorGUILayout.TextField("namespace", configData.NameSpace_);
+            if(_nameSpace != configData.NameSpace_)
             {
-                configData.NameSpace = _nameSpace;
+                configData.NameSpace_ = _nameSpace;
                 _isDirty = true;
             }
 
             EditorGUILayout.Space();
 
-            _folderPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder);
-            configData.MasterPathFolder = (DefaultAsset)EditorGUILayout.ObjectField("Master path", configData.MasterPathFolder, typeof(DefaultAsset), true);
-            var masterPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder);
+            _folderPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder_);
+            configData.MasterPathFolder_ = (DefaultAsset)EditorGUILayout.ObjectField("Master path", configData.MasterPathFolder_, typeof(DefaultAsset), true);
+            var masterPath = AssetDatabase.GetAssetPath(configData.MasterPathFolder_);
             if (_folderPath != masterPath && !string.IsNullOrEmpty(masterPath))
             {
                 _isDirty = true;
             }
-            EditorGUILayout.LabelField($"Master will be generated to: {AssetDatabase.GetAssetPath(configData.MasterPathFolder)}");
+            EditorGUILayout.LabelField($"Master will be generated to: {AssetDatabase.GetAssetPath(configData.MasterPathFolder_)}");
 
             EditorGUILayout.Space();
         }
@@ -522,7 +522,7 @@ namespace MasterLoader.Core
 
         private void DrawOpenUrlButton(Config config)
         {
-            if (string.IsNullOrEmpty(config.SheetUrl))
+            if (string.IsNullOrEmpty(config.SheetUrl_))
             {
                 return;
             }
@@ -531,7 +531,7 @@ namespace MasterLoader.Core
 
             if (GUILayout.Button("Open Current Master Sheet", GUILayout.ExpandWidth(false)))
             {
-                MasterLoader.JumpCreatedSheet(config.SheetUrl);
+                MasterLoader.JumpCreatedSheet(config.SheetUrl_);
             }
         }
 
@@ -552,9 +552,9 @@ namespace MasterLoader.Core
                 DrawLoaderWindow(configData);
             }
 
-            if((int)_tabStatus != configData.TabIndex)
+            if((int)_tabStatus != configData.TabIndex_)
             {
-                configData.TabIndex = (int)_tabStatus;
+                configData.TabIndex_ = (int)_tabStatus;
                 _isDirty = true;
             }
 

@@ -61,9 +61,9 @@ $"*/{_LINE}{_LINE}";
             {
                 Directory.CreateDirectory(CS_PATH);
             }
-            if (!Directory.Exists(AssetDatabase.GetAssetPath(config.MasterPathFolder)))
+            if (!Directory.Exists(AssetDatabase.GetAssetPath(config.MasterPathFolder_)))
             {
-                var path = AssetDatabase.GetAssetPath(config.MasterPathFolder);
+                var path = AssetDatabase.GetAssetPath(config.MasterPathFolder_);
                 if (string.IsNullOrEmpty(path))
                 {
                     path = "Assets/MasterLoader/Master";
@@ -108,6 +108,10 @@ $"*/{_LINE}{_LINE}";
 
             var parameterCode = string.Empty;
 
+            var nameSpace = string.IsNullOrEmpty(config.NameSpace_) ?
+                $"namespace {_NAMESPACE}" :
+                $"namespace {config.NameSpace_}";
+
             try
             {
                 var switchCode = GenerateSwitchCode(parameterList, typeList, masterProperty, out var enumIndexList);
@@ -116,10 +120,6 @@ $"*/{_LINE}{_LINE}";
                 {
                     throw new Exception($"MasterLoader Info: MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
                 }
-
-                var nameSpace = string.IsNullOrEmpty(config.NameSpace) ?
-                    $"namespace {_NAMESPACE}" :
-                    $"namespace {config.NameSpace}";
 
                 parameterCode += GenerateParameterCode(typeList, switchCode);
 
@@ -147,13 +147,13 @@ $"*/{_LINE}{_LINE}";
             {
                 var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
-                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, config.NameSpace, setDataCode);
+                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
                 var installerCode = _WARNING_MESSAGE;
                 var masters = new List<string>();
-                for (var i = 0; i < config.Masters.Length; i++)
+                for (var i = 0; i < config.Masters_.Length; i++)
                 {
-                    var name = config.Masters[i];
-                    var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder), name);
+                    var name = config.Masters_[i];
+                    var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder_), name);
                     if (master == null)
                     {
                         continue;
@@ -345,7 +345,7 @@ $"*/{_LINE}{_LINE}";
             $"using UnityEngine;{_LINE}" +
             $"using System.Collections.Generic;{_LINE}" +
             $"using System;{_LINE}{_LINE}" +
-            $"namespace {nameSpace}{_LINE}" +
+            $"{nameSpace}{_LINE}" +
             $"{{" +
             $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
@@ -382,7 +382,7 @@ $"*/{_LINE}{_LINE}";
 
         private static string GenerateInstallerCode(Config config)
         {
-            var masterNamespace = config.MasterNamespaceList;
+            var masterNamespace = config.MasterNamespaceList_;
 
             var namespaceListCode = string.Empty;
             var masterListCode = string.Empty;
@@ -404,7 +404,7 @@ $"*/{_LINE}{_LINE}";
                 $"{GetBaseIndent(2)}[SerializeField]" +
                 $"{GetBaseIndent(2)}private {masterName}{MasterLoader.MASTER} _{masterName};";
 
-                var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder)}/{masterName}.asset\"";
+                var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder_)}/{masterName}.asset\"";
                 installCode +=
                 $"{GetBaseIndent(2)}{_TAB}_{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
             }

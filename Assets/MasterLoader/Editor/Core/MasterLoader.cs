@@ -50,7 +50,7 @@ namespace MasterLoader.Core
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
         private static bool LoadMaster(string masterName)
         {
-            var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl}";
+            var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl_}";
             //Debug.Log(url);
             var json = LoadMasterCore(url);
 
@@ -69,10 +69,10 @@ namespace MasterLoader.Core
                 }
                 return false;
             }
-            var list = ConfigData.LoadedResultList;
+            var list = ConfigData.LoadedResultList_;
             if (list.Count > 0)
             {
-                ConfigData.LoadedResultList.Clear();
+                ConfigData.LoadedResultList_.Clear();
                 //Debug.LogWarning($"{nameof(list)} has old list, cleared.");
             }
             list.Add(result);
@@ -81,7 +81,7 @@ namespace MasterLoader.Core
 
         private static bool LoadAllMaster()
         {
-            var url = $"{_API_URL}function=LoadAll&{_URL}{ConfigData.SheetUrl}";
+            var url = $"{_API_URL}function=LoadAll&{_URL}{ConfigData.SheetUrl_}";
 
             var json = LoadMasterCore(url);
 
@@ -108,7 +108,7 @@ namespace MasterLoader.Core
             {
                 return false;
             }
-            ConfigData.LoadedResultList = result.ToList();
+            ConfigData.LoadedResultList_ = result.ToList();
             return true;
         }
 
@@ -180,21 +180,21 @@ namespace MasterLoader.Core
 
         private static bool CreateMaster_()
         {
-            ConfigData.WaitCreateMaster = true;
-            var list = ConfigData.LoadedResultList;
+            ConfigData.WaitCreateMaster_ = true;
+            var list = ConfigData.LoadedResultList_;
             foreach (var _loadedResult in list)
             {
-                var target = ConfigData.MasterNamespaceList.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
+                var target = ConfigData.MasterNamespaceList_.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
                 if (target != null)
                 {
-                    target.Namespace = ConfigData.NameSpace;
+                    target.Namespace = ConfigData.NameSpace_;
                 }
                 else
                 {
-                    ConfigData.MasterNamespaceList.Add(new MasterNamespace
+                    ConfigData.MasterNamespaceList_.Add(new MasterNamespace
                     {
                         MasterName = _loadedResult.Name,
-                        Namespace = ConfigData.NameSpace
+                        Namespace = ConfigData.NameSpace_
                     });
                 }
                 if (!GenerateCode(ConfigData, _loadedResult))
@@ -218,15 +218,15 @@ namespace MasterLoader.Core
         private static void OnCreateMaster()
         {
             UpdateConfig();
-            if (!ConfigData.WaitCreateMaster)
+            if (!ConfigData.WaitCreateMaster_)
             {
                 return;
             }
-            ConfigData.WaitCreateMaster = false;
+            ConfigData.WaitCreateMaster_ = false;
             SaveConfig();
-            foreach (var target in ConfigData.LoadedResultList)
+            foreach (var target in ConfigData.LoadedResultList_)
             {
-                var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder)}/{target.Name}.asset";
+                var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder_)}/{target.Name}.asset";
                 var soMaster = Utility.Utility.GetAssetPathObject(assetPath, target.Name);
                 if (soMaster == null)
                 {
@@ -259,7 +259,7 @@ namespace MasterLoader.Core
 
         public static void CreateSpreadSheet(string masterName, string id)
         {
-            var list = ConfigData.CreatingMasterValueList.Where(m => !string.IsNullOrEmpty(m.VariableName));
+            var list = ConfigData.CreatingMasterValueList_.Where(m => !string.IsNullOrEmpty(m.VariableName));
             var comment = list.Select(m => m.Comment).ToArray();
             var parameter = list.Select(m => m.VariableName).ToArray();
             var type = list.Select(m => m.Type).ToArray();
@@ -303,10 +303,10 @@ namespace MasterLoader.Core
                             throw new Exception(json);
                         }
                         var returnConfig = JsonUtility.FromJson<Config>(json);
-                        ConfigData.SheetUrl = returnConfig.SheetUrl;
-                        ConfigData.Masters = returnConfig.Masters;
-                        Debug.Log($"MasterLoader Info: Creating Sheet has completed.\n<color=cyan>{returnConfig.SheetUrl}</color>");
-                        foreach(var m in ConfigData.Masters)
+                        ConfigData.SheetUrl_ = returnConfig.SheetUrl_;
+                        ConfigData.Masters_ = returnConfig.Masters_;
+                        Debug.Log($"MasterLoader Info: Creating Sheet has completed.\n<color=cyan>{returnConfig.SheetUrl_}</color>");
+                        foreach(var m in ConfigData.Masters_)
                         {
                             Debug.Log($"MasterLoader Info: sheet '{m}' has created.");
                         }
@@ -357,16 +357,16 @@ namespace MasterLoader.Core
                     {
                         EditorUtility.ClearProgressBar();
                         var data = JsonUtility.FromJson<Config>(request.downloadHandler.text);
-                        if (data.Alerts.Length > 0)
+                        if (data.Alerts_.Length > 0)
                         {
-                            Debug.LogError($"MasterLoader Info: {data.Alerts.Length} sheet problems detected.");
-                            for (var i = 0; i < data.Alerts.Length; i++)
+                            Debug.LogError($"MasterLoader Info: {data.Alerts_.Length} sheet problems detected.");
+                            for (var i = 0; i < data.Alerts_.Length; i++)
                             {
-                                Debug.LogAssertion(data.Alerts[i]);
+                                Debug.LogAssertion(data.Alerts_[i]);
                             }
                             return false;
                         }
-                        else if(data.Masters.Length < 1)
+                        else if(data.Masters_.Length < 1)
                         {
                             Debug.LogError("MasterLoader Info: Loadable master is nothing. Please fix sheet problems.");
                             return false;
@@ -374,7 +374,7 @@ namespace MasterLoader.Core
                         else
                         {
                             Debug.Log("MasterLoader Info: Getting Sheet has completed.");
-                            ConfigData.Masters = data.Masters;
+                            ConfigData.Masters_ = data.Masters_;
                             RemoveOldMasterDictionary();
                             SaveConfig();
                             return true;
@@ -399,12 +399,12 @@ namespace MasterLoader.Core
 
         private static void RemoveOldMasterDictionary()
         {
-            var oldMasters = ConfigData.MasterNamespaceList.Where(m => !ConfigData.Masters.Contains(m.MasterName)).ToList();
+            var oldMasters = ConfigData.MasterNamespaceList_.Where(m => !ConfigData.Masters_.Contains(m.MasterName)).ToList();
             for (var i = 0; i < oldMasters.Count; i++)
             {
-                if (ConfigData.Masters.Contains(oldMasters[i].MasterName))
+                if (ConfigData.Masters_.Contains(oldMasters[i].MasterName))
                 {
-                    ConfigData.MasterNamespaceList.Remove(oldMasters[i]);
+                    ConfigData.MasterNamespaceList_.Remove(oldMasters[i]);
                     Debug.Log($"MasterLoader Info: {oldMasters[i]} is removed because it no longer used");
                 }
             }
