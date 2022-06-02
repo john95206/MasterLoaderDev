@@ -315,7 +315,7 @@ $"*/{_LINE}{_LINE}";
         {
             return
             $"{GetBaseIndent(3)}var dataList = new List<{masterName}>();" +
-            $"{GetBaseIndent(3)}var {masterProperty} = new {masterName}{{}};" +
+            $"{GetBaseIndent(3)}var obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}var doneIndex = 0;" +
             $"{GetBaseIndent(3)}for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
             $"{GetBaseIndent(3)}{{" +
@@ -323,7 +323,7 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0)" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}{masterProperty} = new {masterName}{{}};" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
             $"{GetBaseIndent(3)}{_TAB}for(var parameterIndex = 0; parameterIndex < {length + 1}; parameterIndex++)" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
@@ -335,8 +335,9 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}{_TAB}}}" +
             $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length + 1})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add({masterProperty});" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add(obj);" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
             $"{GetBaseIndent(3)}}}" +
             $"{GetBaseIndent(3)}_{masterProperty} = dataList;";
@@ -471,7 +472,7 @@ $"*/{_LINE}{_LINE}";
         private static string GetInputCode(string masterProperty, string parameter)
         {
             return
-            $"{GetBaseIndent(7)}{masterProperty}.{ReplacePublicName(parameter)} = value;" +
+            $"{GetBaseIndent(7)}obj.{ReplacePublicName(parameter)} = value;" +
             $"{GetBaseIndent(7)}isDone = true;" +
             $"{GetBaseIndent(7)}doneIndex++;" +
             $"{GetBaseIndent(7)}continue;";
