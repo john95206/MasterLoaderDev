@@ -88,19 +88,10 @@ $"*/{_LINE}{_LINE}";
                         $"{GetBaseIndent(2)}/// </summary>{_LINE}";
                 }
 
-                var parameterString = string.Empty;
-                if (typeList[i].Equals("enum"))
-                {
-                    parameterString = $"{parameterList[i].ToUpper()} {parameterList[i].ToLower()}";
-                }
-                else
-                {
-                    parameterString = $"{ typeList[i]} { parameterList[i]}";
-                }
                 parameter =
                     _LINE +
                     $"{comment}" +
-                    $"{_TAB}{_TAB}public {parameterString};";
+                    $"{_TAB}{_TAB}public {GetParameterString(typeList[i], parameterList[i])};";
                 body += parameter;
             }
 
@@ -187,6 +178,18 @@ $"*/{_LINE}{_LINE}";
                 Debug.LogError($"MasterLoader Info: {e.Message}");
                 Debug.LogError("MasterLoader Info: MasterLoader successed loading master data, but couldn't get argument successfuly.\n please check your master sheet's 'type row' or 'sheet name'");
                 return false;
+            }
+        }
+
+        private static string GetParameterString(string type, string parameter)
+        {
+            if (type.Equals("enum"))
+            {
+                return $"{parameter.ToUpper()} {ReplacePublicName(parameter)}";
+            }
+            else
+            {
+                return $"{type} {parameter}";
             }
         }
 
@@ -460,7 +463,7 @@ $"*/{_LINE}{_LINE}";
         private static string GetInputCode(string masterProperty, string parameter)
         {
             return
-            $"{GetBaseIndent(7)}{masterProperty}.{parameter} = value;" +
+            $"{GetBaseIndent(7)}{masterProperty}.{ReplacePublicName(parameter)} = value;" +
             $"{GetBaseIndent(7)}isDone = true;" +
             $"{GetBaseIndent(7)}doneIndex++;" +
             $"{GetBaseIndent(7)}continue;";
