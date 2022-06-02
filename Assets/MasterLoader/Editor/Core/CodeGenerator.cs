@@ -320,12 +320,12 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
             $"{GetBaseIndent(3)}{{" +
             $"{GetBaseIndent(3)}{_TAB}var isDone = false;" +
-            $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0 || doneIndex >= {length})" +
+            $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0)" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{masterProperty} = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}for(var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
+            $"{GetBaseIndent(3)}{_TAB}for(var parameterIndex = 0; parameterIndex < {length + 1}; parameterIndex++)" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}if(isDone)" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{{" +
@@ -333,9 +333,10 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}{_TAB}{_TAB}}}" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{parameterCode}" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length} - 1)" +
+            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length + 1})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add({masterProperty});" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
             $"{GetBaseIndent(3)}}}" +
             $"{GetBaseIndent(3)}_{masterProperty} = dataList;";
