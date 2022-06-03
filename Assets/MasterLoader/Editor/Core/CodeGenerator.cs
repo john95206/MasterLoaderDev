@@ -260,7 +260,7 @@ $"*/{_LINE}{_LINE}";
                     case "enum":
                         code += $"{GetBaseIndent(6)}case {parameterIndex}:" +
                         $"{GetBaseIndent(6)}{{" +
-                        $"{GetBaseIndent(6)}{_TAB}if(!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))" +
+                        $"{GetBaseIndent(6)}{_TAB}if (!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))" +
                         $"{GetBaseIndent(6)}{_TAB}{{" +
                         $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
                         $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
@@ -280,7 +280,7 @@ $"*/{_LINE}{_LINE}";
         private static string GenerateParameterCode(string[] typeList, string switchCode)
         {
             return
-            $"{GetBaseIndent(5)}switch(GetPrime(valueIndex, {typeList.Length}))" +
+            $"{GetBaseIndent(5)}switch (GetPrime(valueIndex, {typeList.Length}))" +
             $"{GetBaseIndent(5)}{{" +
                                     switchCode +
             $"{GetBaseIndent(5)}}}";
@@ -315,23 +315,23 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}var dataList = new List<{masterName}>();" +
             $"{GetBaseIndent(3)}var obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}var doneIndex = 0;" +
-            $"{GetBaseIndent(3)}for(var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
+            $"{GetBaseIndent(3)}for (var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
             $"{GetBaseIndent(3)}{{" +
             $"{GetBaseIndent(3)}{_TAB}var isDone = false;" +
-            $"{GetBaseIndent(3)}{_TAB}if(valueIndex == 0 || doneIndex >= {length})" +
+            $"{GetBaseIndent(3)}{_TAB}if (valueIndex == 0 || doneIndex >= {length})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}for(var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
+            $"{GetBaseIndent(3)}{_TAB}for (var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}if(isDone)" +
+            $"{GetBaseIndent(3)}{_TAB}{_TAB}if (isDone)" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{_TAB}continue;" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}}}" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{parameterCode}" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length})" +
+            $"{GetBaseIndent(3)}{_TAB}if (doneIndex == {length})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add(obj);" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
@@ -356,7 +356,7 @@ $"*/{_LINE}{_LINE}";
 
             $"{GetBaseIndent(1)}{_TAB}public void SetData(string[] data)" +
             $"{GetBaseIndent(1)}{_TAB}{{" +
-            $"{_TAB}{_TAB}{_TAB}{setDataCode}" +
+            $"{setDataCode}" +
             $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
 
             $"{GetBaseIndent(1)}{_TAB}private int GetPrime(int value, int length)" +
@@ -479,7 +479,7 @@ $"*/{_LINE}{_LINE}";
             return
             $"{GetBaseIndent(6)}case {parameterIndex}:" +
             $"{GetBaseIndent(6)}{{" +
-            $"{GetBaseIndent(6)}{_TAB}if(!{type}.TryParse(data[valueIndex], out var value))" +
+            $"{GetBaseIndent(6)}{_TAB}if (!{type}.TryParse(data[valueIndex], out var value))" +
             $"{GetBaseIndent(6)}{_TAB}{{" +
             $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
             $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
