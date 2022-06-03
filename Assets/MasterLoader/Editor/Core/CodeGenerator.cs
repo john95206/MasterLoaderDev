@@ -73,7 +73,6 @@ $"*/{_LINE}{_LINE}";
             var body = string.Empty;
             for (var i = 0; i < typeList.Length; i++)
             {
-                var parameter = string.Empty;
                 var comment = string.Empty;
                 if (!string.IsNullOrEmpty(commentList[i]))
                 {
@@ -88,11 +87,10 @@ $"*/{_LINE}{_LINE}";
                         $"{GetBaseIndent(2)}/// </summary>{_LINE}";
                 }
 
-                parameter =
+                body +=
                     _LINE +
                     $"{comment}" +
-                    $"{_TAB}{_TAB}public {GetParameterString(typeList[i], parameterList[i])};";
-                body += parameter;
+                    $"{_TAB}{_TAB}public {GetParameterString(typeList[i], parameterList[i])};"; ;
             }
 
             var rowCode = _WARNING_MESSAGE;
