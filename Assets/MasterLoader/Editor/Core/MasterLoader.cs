@@ -90,25 +90,38 @@ namespace MasterLoader.Core
                 return false;
             }
 
-            var result = JsonUtility.FromJson<BaseAll>(json).Values;
-            var _isValid = true;
+            try
+            {
+                var result = JsonUtility.FromJson<BaseAll>(json).Values;
+                var _isValid = true;
 
-            foreach(var obj in result)
-            {
-                if (obj.Alerts?.Length > 0)
+                foreach (var obj in result)
                 {
-                    for (var i = 0; i < obj.Alerts.Length; i++)
+                    if (obj.Alerts?.Length > 0)
                     {
-                        Debug.LogError($"MasterLoader Info: {obj.Alerts[i]}");
+                        for (var i = 0; i < obj.Alerts.Length; i++)
+                        {
+                            Debug.LogError($"MasterLoader Info: {obj.Alerts[i]}");
+                        }
+                        _isValid = false;
                     }
-                    _isValid = false;
                 }
+                if (!_isValid)
+                {
+                    throw new Exception(message: "");
+                }
+                ConfigData.LoadedResultList_ = result.ToList();
             }
-            if (!_isValid)
+            catch (Exception e)
             {
+                if (!string.IsNullOrEmpty(e?.Message))
+                {
+                    Debug.LogException(e);
+                }
+                Debug.Log(json);
+
                 return false;
             }
-            ConfigData.LoadedResultList_ = result.ToList();
             return true;
         }
 
