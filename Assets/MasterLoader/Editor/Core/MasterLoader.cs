@@ -268,6 +268,8 @@ namespace MasterLoader.Core
             }
             var component = installer.GetComponent<MasterInstaller>();
             component.SetMaster();
+            EditorUtility.SetDirty(component);
+            AssetDatabase.SaveAssets();
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
