@@ -333,11 +333,9 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(3)}{_TAB}{_TAB}}}" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}{parameterCode}" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length} - 1)" +
+            $"{GetBaseIndent(3)}{_TAB}if(doneIndex == {length})" +
             $"{GetBaseIndent(3)}{_TAB}{{" +
             $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add(obj);" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}obj = new {masterName}{{}};" +
             $"{GetBaseIndent(3)}{_TAB}}}" +
             $"{GetBaseIndent(3)}}}" +
             $"{GetBaseIndent(3)}_{masterProperty} = dataList;";
