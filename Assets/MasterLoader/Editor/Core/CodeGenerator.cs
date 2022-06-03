@@ -352,7 +352,7 @@ $"*/{_LINE}{_LINE}";
             $"{{" +
             $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
-            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {ReplacePublicName(masterProperty)} => _{masterProperty};" +
+            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {ReplacePublicName(masterProperty)} {{ get {{ return _{masterProperty}; }} }}" +
             $"{GetBaseIndent(1)}{_TAB}[SerializeField]" +
             $"{GetBaseIndent(1)}{_TAB}private List<{masterName}> _{masterProperty} = new List<{masterName}>();{_LINE}" +
 
