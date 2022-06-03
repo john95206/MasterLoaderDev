@@ -133,7 +133,7 @@ namespace MasterLoader.Core
                 {
                     var req = request.SendWebRequest();
 
-                    while (req.progress < 1)
+                    while (!req.isDone)
                     {
                         EditorUtility.DisplayProgressBar("Getting Master Data...", $"{request.downloadProgress * 100}%", request.downloadProgress);
                     }
