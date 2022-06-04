@@ -29,6 +29,7 @@ namespace MasterLoader.Core
         /// 読み込むシートの判断用
         /// </summary>
         private const string _SHEET_NAME = "sheetName=";
+        private static double _compileWaitTime = 0.0d;
 
         /// <summary>
         /// アプリ起動時に自動でScriptableObjectを更新する
@@ -244,7 +245,7 @@ namespace MasterLoader.Core
 
             CreateMasters(ConfigData);
 
-            CreateInstaller();
+            EditorApplication.update += OnTicked;
         }
 
         private static void CreateMasters(Config ConfigData)
@@ -268,8 +269,21 @@ namespace MasterLoader.Core
             }
         }
 
+        private static void OnTicked()
+        {
+            if(_compileWaitTime < 30.0d / 60.0d)
+            {
+                _compileWaitTime = EditorApplication.timeSinceStartup;
+                return;
+            }
+            CreateInstaller();
+        }
+
         private static void CreateInstaller()
         {
+            EditorApplication.update -= OnTicked;
+            _compileWaitTime = 0;
+
             var installer = AssetDatabase.LoadMainAssetAtPath($"{_INSTALLER_PATH}/MasterInstaller.prefab") as GameObject;
             if (installer == null)
             {
