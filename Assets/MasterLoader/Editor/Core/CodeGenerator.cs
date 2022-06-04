@@ -396,9 +396,9 @@ $"*/{_LINE}{_LINE}";
             for (var i = 0; i < masterNamespace.Count; i++)
             {
                 var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
-                var path = $"{AssetDatabase.GetAssetPath(config.MasterPathFolder_)}/{masterName}.asset";
+                var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
 
-                if (!File.Exists(path))
+                if (!File.Exists(masterCsPath))
                 {
                     continue;
                 }
@@ -418,8 +418,9 @@ $"*/{_LINE}{_LINE}";
                 $"{GetBaseIndent(2)}[SerializeField]" +
                 $"{GetBaseIndent(2)}private {masterName}{MasterLoader.MASTER} _{masterName};";
 
+                var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder_)}/{masterName}.asset\"";
                 installCode +=
-                $"{GetBaseIndent(2)}{_TAB}_{masterName} = AssetDatabase.LoadMainAssetAtPath(\"{path}\") as {masterName}{MasterLoader.MASTER};";
+                $"{GetBaseIndent(2)}{_TAB}_{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
             }
 
             var editorCode =
