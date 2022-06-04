@@ -216,6 +216,10 @@ namespace MasterLoader.Core
                     return false;
                 }
             }
+            if (!CodeGenerator.GenerateInstaller(ConfigData))
+            {
+                return false;
+            }
             SaveConfig();
 
             if (!EditorApplication.isCompiling)
@@ -251,6 +255,7 @@ namespace MasterLoader.Core
 
                 method.Invoke(soMaster, new object[] { target.ValueList });
                 EditorUtility.SetDirty(soMaster);
+                AssetDatabase.SaveAssetIfDirty(soMaster);
                 Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
 
@@ -269,7 +274,7 @@ namespace MasterLoader.Core
             var component = installer.GetComponent<MasterInstaller>();
             component.SetMaster();
             EditorUtility.SetDirty(component);
-            AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssetIfDirty(component);
         }
 
         public static void CreateSpreadSheet(string masterName, string id)
