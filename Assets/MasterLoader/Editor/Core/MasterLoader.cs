@@ -241,6 +241,14 @@ namespace MasterLoader.Core
             }
             ConfigData.WaitCreateMaster_ = false;
             SaveConfig();
+
+            CreateMasters(ConfigData);
+
+            CreateInstaller();
+        }
+
+        private static void CreateMasters(Config ConfigData)
+        {
             foreach (var target in ConfigData.LoadedResultList_)
             {
                 var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder_)}/{target.Name}.asset";
@@ -258,7 +266,10 @@ namespace MasterLoader.Core
                 AssetDatabase.SaveAssetIfDirty(soMaster);
                 Debug.Log($"MasterLoader Info: {target.Name} Completely Created!");
             }
+        }
 
+        private static void CreateInstaller()
+        {
             var installer = AssetDatabase.LoadMainAssetAtPath($"{_INSTALLER_PATH}/MasterInstaller.prefab") as GameObject;
             if (installer == null)
             {
