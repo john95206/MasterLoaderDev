@@ -137,19 +137,6 @@ $"*/{_LINE}{_LINE}";
                 var length = parameterList.Length - _enumValues.Count;
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
-                var installerCode = _WARNING_MESSAGE;
-                var masters = new List<string>();
-                for (var i = 0; i < config.Masters_.Length; i++)
-                {
-                    var name = config.Masters_[i];
-                    var master = Utility.Utility.GetAssetPathObject(AssetDatabase.GetAssetPath(config.MasterPathFolder_), name);
-                    if (master == null)
-                    {
-                        continue;
-                    }
-                    masters.Add(name);
-                }
-                installerCode += GenerateInstallerCode(config, masterName);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
                 var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
@@ -162,11 +149,6 @@ $"*/{_LINE}{_LINE}";
                 {
                     sw.Write(masterCode);
                 }
-                var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
-                using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
-                {
-                    sw.Write(installerCode);
-                }
                 AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
 
                 return true;
@@ -177,6 +159,28 @@ $"*/{_LINE}{_LINE}";
                 Debug.LogError("MasterLoader Info: MasterLoader successed loading master data, but couldn't get argument successfuly.\n please check your master sheet's 'type row' or 'sheet name'");
                 return false;
             }
+        }
+
+        public static bool GenerateInstaller(Config config)
+        {
+            try
+            {
+                var installerCode = _WARNING_MESSAGE;
+                installerCode += GenerateInstallerCode(config);
+
+                var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
+                using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
+                {
+                    sw.Write(installerCode);
+                }
+                AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return false;
+            }
+            return true;
         }
 
         private static string GetParameterString(string type, string parameter)
@@ -381,7 +385,7 @@ $"*/{_LINE}{_LINE}";
             $"{_LINE}}}";
         }
 
-        private static string GenerateInstallerCode(Config config, string currentMasterName)
+        private static string GenerateInstallerCode(Config config)
         {
             var masterNamespace = config.MasterNamespaceList_;
 
@@ -393,12 +397,10 @@ $"*/{_LINE}{_LINE}";
             {
                 var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
                 var path = $"{AssetDatabase.GetAssetPath(config.MasterPathFolder_)}/{masterName}.asset";
-                if(currentMasterName != masterName)
+
+                if (!File.Exists(path))
                 {
-                    if (!File.Exists(path))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
                 var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
                 if (!recordedNameSpace.Contains(nameSpace))
