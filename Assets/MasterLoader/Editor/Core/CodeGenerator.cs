@@ -134,8 +134,7 @@ $"*/{_LINE}{_LINE}";
 
             try
             {
-                var length = parameterList.Length - _enumValues.Count;
-                var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, length, parameterCode);
+                var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, parameterList.Length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
 
                 var rowCsPath = $"{CS_PATH}{masterName}{CS}";
