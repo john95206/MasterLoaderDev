@@ -6,6 +6,10 @@ using System;
 using MasterLoaderConfig;
 using System.Linq;
 using System.IO;
+using System.Threading;
+using UnityEngine.SocialPlatforms;
+//using Google.Apis;
+
 
 namespace MasterLoader.Core
 {
@@ -21,9 +25,10 @@ namespace MasterLoader.Core
         private const string _CONFIG_PATH = "Confing";
         private const string _INSTALLER_PATH = "Assets/MasterLoader/Prefab";
         public const string MASTER = "Master";
-        private const string _API_URL =
-            "https://script.google.com/macros/s/AKfycbwjx-pDNW89Hzi0SV_hGHzVhOMt2_v6K6r4S9Txd_JTuiilzxjHOqjwo3IYcm7PnVWGZQ/exec?";
+        private const string _API_URL = "https://script.google.com/macros/s/AKfycbyjH-fkCFrCjXIryi4LjR_LyxtqQzEmyrgLTZJFvoIOYAiyYPJe_Y_u7mIpgmoiIZ0s";
+        private const string _EXEC = "/exec?";
         private const string _URL = "url=";
+        private const string GoogleSpreadsheetURL = "https://sheets.googleapis.com/v4/spreadsheets";
         /// <summary>
         /// doGet時の独自変数
         /// 読み込むシートの判断用
@@ -51,7 +56,7 @@ namespace MasterLoader.Core
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
         private static bool LoadMaster(string masterName)
         {
-            var url = $"{_API_URL}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl_}";
+            var url = $"{_API_URL}{_EXEC}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl_}";
             //Debug.Log(url);
             var json = LoadMasterCore(url);
 
@@ -316,7 +321,7 @@ namespace MasterLoader.Core
                 Name = masterName,
             };
             var valueJson = JsonUtility.ToJson(value);
-            var url = $"{_API_URL}function=CreateSheet&id={id}&values={valueJson}";
+            var url = $"{_API_URL}{_EXEC}function=CreateSheet&id={id}&values={valueJson}";
 
             try
             {
@@ -375,7 +380,7 @@ namespace MasterLoader.Core
 
         public static bool GetSheets(string sheetUrl)
         {
-            var url = $"{_API_URL}function=GetSheets&{_URL}={sheetUrl}";
+            var url = $"{_API_URL}{_EXEC}function=GetSheets&{_URL}{sheetUrl}";
 
             try
             {
