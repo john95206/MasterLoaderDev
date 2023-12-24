@@ -1,14 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.Networking;
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
 using MasterLoaderConfig;
 using System.Linq;
 using System.IO;
-using System.Threading;
-using UnityEngine.SocialPlatforms;
-//using Google.Apis;
 
 
 namespace MasterLoader.Core
@@ -19,22 +15,8 @@ namespace MasterLoader.Core
     [InitializeOnLoad]
     public class MasterLoader : Editor
     {
-        public static Config ConfigData;
-
-        public const string UTILITY_PATH = "Assets/MasterLoader/Scripts/Utility/";
-        private const string _CONFIG_PATH = "Confing";
-        private const string _INSTALLER_PATH = "Assets/MasterLoader/Prefab";
-        public const string MASTER = "Master";
-        private const string _API_URL = "https://script.google.com/macros/s/AKfycbyjH-fkCFrCjXIryi4LjR_LyxtqQzEmyrgLTZJFvoIOYAiyYPJe_Y_u7mIpgmoiIZ0s";
-        private const string _EXEC = "/exec?";
-        private const string _URL = "url=";
-        private const string GoogleSpreadsheetURL = "https://sheets.googleapis.com/v4/spreadsheets";
-        /// <summary>
-        /// doGet時の独自変数
-        /// 読み込むシートの判断用
-        /// </summary>
-        private const string _SHEET_NAME = "sheetName=";
-        private static double _compileWaitTime = 0.0d;
+        public static IConfig ConfigData;
+        private static MasterLoaderScheduler _scheduler = new MasterLoaderScheduler();
 
         /// <summary>
         /// アプリ起動時に自動でScriptableObjectを更新する
@@ -56,7 +38,15 @@ namespace MasterLoader.Core
         /// <returns>エラー時の警告またはロードしたマスタ名</returns>
         private static bool LoadMaster(string masterName)
         {
-            var url = $"{_API_URL}{_EXEC}function=LoadMaster&{_SHEET_NAME}{masterName}&{_URL}{ConfigData.SheetUrl_}";
+            var url = StringStore.GetUrl
+            (
+                StringStore.FUNCTION_MASTER,
+                new string[]
+                {
+                    $"{StringStore.SHEET_NAME}{masterName}",
+                    $"{StringStore.URL}{ConfigData.WindowConfig.SheetUrl}"
+                }
+            );
             //Debug.Log(url);
             var json = LoadMasterCore(url);
 
@@ -65,29 +55,19 @@ namespace MasterLoader.Core
                 return false;
             }
 
-            var result = JsonUtility.FromJson<Base>(json);
-
-            if (result.Alerts?.Length > 0)
-            {
-                for (var i = 0; i < result.Alerts.Length; i++)
-                {
-                    Debug.LogError($"MasterLoader Info: {result.Alerts[i]}");
-                }
-                return false;
-            }
-            var list = ConfigData.LoadedResultList_;
-            if (list.Count > 0)
-            {
-                ConfigData.LoadedResultList_.Clear();
-                //Debug.LogWarning($"{nameof(list)} has old list, cleared.");
-            }
-            list.Add(result);
-            return true;
+            return OnLoadedMaster(json);
         }
 
         private static bool LoadAllMaster()
         {
-            var url = $"{_API_URL}function=LoadAll&{_URL}{ConfigData.SheetUrl_}";
+            var url = StringStore.GetUrl
+            (
+                StringStore.FUNCTION_LOAD_ALL,
+                new string[]
+                {
+                    $"{StringStore.URL}{ConfigData.WindowConfig.SheetUrl}"
+                }
+            );
 
             var json = LoadMasterCore(url);
 
@@ -98,7 +78,7 @@ namespace MasterLoader.Core
 
             try
             {
-                var result = JsonUtility.FromJson<BaseAll>(json).Values;
+                var result = JsonUtility.FromJson<MasterDataRawAll>(json).Values;
                 var _isValid = true;
 
                 foreach (var obj in result)
@@ -116,7 +96,7 @@ namespace MasterLoader.Core
                 {
                     throw new Exception(message: "");
                 }
-                ConfigData.LoadedResultList_ = result.ToList();
+                ConfigData.LoadingConfig.SetLoadedResultList(result.ToList());
             }
             catch (Exception e)
             {
@@ -133,48 +113,40 @@ namespace MasterLoader.Core
 
         private static string LoadMasterCore(string url)
         {
-            try
-            {
-                using (UnityWebRequest request = UnityWebRequest.Get(url))
-                {
-                    var req = request.SendWebRequest();
+            return WebRequest.SendWebRequest
+            (
+                url,
+                "Getting Master Data..."
+            );
+        }
 
-                    while (!req.isDone)
-                    {
-                        EditorUtility.DisplayProgressBar("Getting Master Data...", $"{request.downloadProgress * 100}%", request.downloadProgress);
-                    }
-#if UNITY_2020_1_OR_NEWER
-                    if(request.result == UnityWebRequest.Result.ConnectionError ||
-                        request.result == UnityWebRequest.Result.ProtocolError)
-#else
-                    if (request.isHttpError || request.isNetworkError)
-#endif
-                    {
-                        Debug.LogError("MasterLoader Info: NetWork Error.");
-                        throw new Exception(request.error);
-                    }
+        private static bool OnLoadedMaster(string json)
+        {
+            var result = JsonUtility.FromJson<MasterDataRaw>(json);
 
-                    var json = request.downloadHandler.text;
-                    if (json.Contains("<!DOCTYPE html>"))
-                    {
-                        throw new Exception(json);
-                    }
-                    return json;
-                }
-            }
-            catch (Exception e)
+            if (HasAlerts(result))
             {
-                Debug.LogError("MasterLoader Info: Request has failed.");
-                Debug.LogException(e);
-                return string.Empty;
+                LogAlerts(result.Alerts);
+                return false;
             }
-            finally
+            ConfigData.LoadingConfig.AddLoadedResult(result);
+            return true;
+        }
+
+        private static bool HasAlerts(MasterDataRaw result)
+        {
+            return result.Alerts?.Length > 0;
+        }
+
+        private static void LogAlerts(string[] alerts)
+        {
+            for (var i = 0; i < alerts.Length; i++)
             {
-                EditorUtility.ClearProgressBar();
+                Debug.LogError($"MasterLoader Info: {alerts[i]}");
             }
         }
 
-        private static bool GenerateCode(Config config, Base code)
+        private static bool GenerateCode(IConfig config, MasterDataRaw code)
         {
             return CodeGenerator.Generate(config, code);
         }
@@ -199,30 +171,17 @@ namespace MasterLoader.Core
 
         private static bool CreateMaster_()
         {
-            ConfigData.WaitCreateMaster_ = true;
-            var list = ConfigData.LoadedResultList_;
+            _scheduler.SetIsWaitingCompiled(true);
+            var list = ConfigData.LoadingConfig.LoadedResultList;
             foreach (var _loadedResult in list)
             {
-                var target = ConfigData.MasterNamespaceList_.FirstOrDefault(m => m.MasterName == _loadedResult.Name);
-                if (target != null)
-                {
-                    target.Namespace = ConfigData.NameSpace_;
-                }
-                else
-                {
-                    ConfigData.MasterNamespaceList_.Add(new MasterNamespace
-                    {
-                        MasterName = _loadedResult.Name,
-                        Namespace = ConfigData.NameSpace_
-                    });
-                }
                 if (!GenerateCode(ConfigData, _loadedResult))
                 {
                     //list.Clear();
                     return false;
                 }
             }
-            if (!CodeGenerator.GenerateInstaller(ConfigData))
+            if (!CodeGenerator.GenerateInjector(ConfigData))
             {
                 return false;
             }
@@ -230,7 +189,7 @@ namespace MasterLoader.Core
 
             if (!EditorApplication.isCompiling)
             {
-                OnCreateMaster();
+                OnCreateMasterScriptableObjects();
                 return true;
             }
             Debug.Log("MasterLoader Info: Now Compiling...");
@@ -238,34 +197,38 @@ namespace MasterLoader.Core
         }
 
         [DidReloadScripts]
-        private static void OnCreateMaster()
+        private static void OnCreateMasterScriptableObjects()
         {
+
             UpdateConfig();
-            if (!ConfigData.WaitCreateMaster_)
+            if (ConfigData.LoadingConfig.LoadedResultList.Count < 1)
             {
                 return;
             }
-            ConfigData.WaitCreateMaster_ = false;
+            _scheduler.SetIsWaitingCompiled(false);
             SaveConfig();
 
-            CreateMasters(ConfigData);
+            CreateMasterScriptableObjects(ConfigData);
 
-            EditorApplication.update += OnTicked;
+            RefreshLoadedResult();
+            RefreshEnumValueList();
+
+            _scheduler.OnStartWaitingTicked(CreateInstaller);
         }
 
-        private static void CreateMasters(Config ConfigData)
+        private static void CreateMasterScriptableObjects(IConfig ConfigData)
         {
-            foreach (var target in ConfigData.LoadedResultList_)
+            foreach (var target in ConfigData.LoadingConfig.LoadedResultList)
             {
-                var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.MasterPathFolder_)}/{target.Name}.asset";
+                var assetPath = $"{AssetDatabase.GetAssetPath(ConfigData.WindowConfig.MasterPathFolder)}/{target.Name}.asset";
                 var soMaster = Utility.Utility.GetAssetPathObject(assetPath, target.Name);
                 if (soMaster == null)
                 {
                     Debug.Log("MasterLoader Info: Creating MasterData...");
-                    soMaster = CreateInstance($"{target.Name}{MASTER}");
+                    soMaster = CreateInstance($"{target.Name}{StringStore.MASTER}");
                     AssetDatabase.CreateAsset(soMaster, assetPath);
                 }
-                var method = soMaster.GetType().GetMethod("SetData");
+                var method = soMaster.GetType().GetMethod(StringStore.METHOD_SET_DATA);
 
                 method.Invoke(soMaster, new object[] { target.ValueList });
                 EditorUtility.SetDirty(soMaster);
@@ -274,103 +237,43 @@ namespace MasterLoader.Core
             }
         }
 
-        private static void OnTicked()
+        private static void RefreshLoadedResult()
         {
-            if(_compileWaitTime < 30.0d / 60.0d)
-            {
-                _compileWaitTime = EditorApplication.timeSinceStartup;
-                return;
-            }
-            CreateInstaller();
+            ConfigData.LoadingConfig.ClearLoadedResultList();
+        }
+
+        private static void RefreshEnumValueList()
+        {
+            ConfigData.LoadingConfig.ClearEnumValueList();
         }
 
         private static void CreateInstaller()
         {
-            EditorApplication.update -= OnTicked;
-            _compileWaitTime = 0;
-
-            var installer = AssetDatabase.LoadMainAssetAtPath($"{_INSTALLER_PATH}/MasterInstaller.prefab") as GameObject;
+            var installer = AssetDatabase.LoadMainAssetAtPath($"{StringStore.PREFAB_PATH}/MasterInstaller.prefab") as GameObject;
             if (installer == null)
             {
-                if (!Directory.Exists($"{_INSTALLER_PATH}/"))
+                if (!Directory.Exists($"{StringStore.PREFAB_PATH}/"))
                 {
-                    Directory.CreateDirectory($"{_INSTALLER_PATH}/");
+                    Directory.CreateDirectory($"{StringStore.PREFAB_PATH}/");
                 }
                 var go = new GameObject();
-                go.AddComponent<MasterInstaller>();
-                installer = PrefabUtility.SaveAsPrefabAsset(go, $"{_INSTALLER_PATH}/MasterInstaller.prefab");
+                go.AddComponent<MasterFacade>();
+                installer = PrefabUtility.SaveAsPrefabAsset(go, $"{StringStore.PREFAB_PATH}/MasterInstaller.prefab");
                 DestroyImmediate(go);
             }
-            var component = installer.GetComponent<MasterInstaller>();
-            component.SetMaster();
-            EditorUtility.SetDirty(component);
-            AssetDatabase.SaveAssetIfDirty(component);
-        }
-
-        public static void CreateSpreadSheet(string masterName, string id)
-        {
-            var list = ConfigData.CreatingMasterValueList_.Where(m => !string.IsNullOrEmpty(m.VariableName));
-            var comment = list.Select(m => m.Comment).ToArray();
-            var parameter = list.Select(m => m.VariableName).ToArray();
-            var type = list.Select(m => m.Type).ToArray();
-            var value = new Base
-            {
-                Comment = comment,
-                Parameter = parameter,
-                Type = type,
-                Name = masterName,
-            };
-            var valueJson = JsonUtility.ToJson(value);
-            var url = $"{_API_URL}{_EXEC}function=CreateSheet&id={id}&values={valueJson}";
-
+            var component = installer.GetComponent<MasterFacade>();
             try
             {
-                using (UnityWebRequest request = UnityWebRequest.Get(url))
-                {
-                    var req = request.SendWebRequest();
-
-                    while (req.progress < 1)
-                    {
-                        EditorUtility.DisplayProgressBar("Creating MasterSheet...", $"{request.downloadProgress * 100}%", request.downloadProgress);
-                    }
-#if UNITY_2020_1_OR_NEWER
-                    if (request.result == UnityWebRequest.Result.ConnectionError ||
-                        request.result == UnityWebRequest.Result.ProtocolError)
-#else
-                    if (request.isHttpError || request.isNetworkError)
-#endif
-                    {
-                        EditorUtility.ClearProgressBar();
-                        Debug.Log("MasterLoader Info: Request has failed.");
-                        throw new Exception(request.error);
-                    }
-                    else
-                    {
-                        EditorUtility.ClearProgressBar();
-                        var json = request.downloadHandler.text;
-                        if (json.Contains("<!DOCTYPE html>"))
-                        {
-                            throw new Exception(json);
-                        }
-                        var returnConfig = JsonUtility.FromJson<Config>(json);
-                        ConfigData.SheetUrl_ = returnConfig.SheetUrl_;
-                        ConfigData.Masters_ = returnConfig.Masters_;
-                        Debug.Log($"MasterLoader Info: Creating Sheet has completed.\n<color=cyan>{returnConfig.SheetUrl_}</color>");
-                        foreach(var m in ConfigData.Masters_)
-                        {
-                            Debug.Log($"MasterLoader Info: sheet '{m}' has created.");
-                        }
-                        RemoveOldMasterDictionary();
-                    }
-                    SaveConfig();
-                }
+                component.SetMaster();
             }
-            catch (Exception e)
+            catch (NullReferenceException e)
             {
-                EditorUtility.ClearProgressBar();
-                Debug.Log("MasterLoader Info: Request has failed.");
-                Debug.LogException(e);
+                Debug.LogError($"MasterLoaderInfo: MasterFacade was null. {e.Message}");
+                MasterLoaderScheduler.OnEndTickAction();
+                return;
             }
+            EditorUtility.SetDirty(component);
+            AssetDatabase.SaveAssetIfDirty(component);
         }
 
         public static void JumpCreatedSheet(string sheetUrl)
@@ -380,64 +283,42 @@ namespace MasterLoader.Core
 
         public static bool GetSheets(string sheetUrl)
         {
-            var url = $"{_API_URL}{_EXEC}function=GetSheets&{_URL}{sheetUrl}";
-
-            try
-            {
-                using (UnityWebRequest request = UnityWebRequest.Get(url))
+            var url = StringStore.GetUrl
+            (
+                StringStore.FUNCTION_GET_SHEETS,
+                new string[]
                 {
-                    var req = request.SendWebRequest();
-
-                    while (req.progress < 1)
-                    {
-                        EditorUtility.DisplayProgressBar("Fetching Master Name...", $"{request.downloadProgress * 100}%", request.downloadProgress);
-                    }
-#if UNITY_2020_1_OR_NEWER
-                    if (request.result == UnityWebRequest.Result.ConnectionError ||
-                        request.result == UnityWebRequest.Result.ProtocolError)
-#else
-                    if (request.isHttpError || request.isNetworkError)
-#endif
-                    {
-                        EditorUtility.ClearProgressBar();
-                        Debug.Log("MasterLoader Info: Request has failed.");
-                        throw new Exception(request.error);
-                    }
-                    else
-                    {
-                        EditorUtility.ClearProgressBar();
-                        var data = JsonUtility.FromJson<Config>(request.downloadHandler.text);
-                        if (data.Alerts_.Length > 0)
-                        {
-                            Debug.LogError($"MasterLoader Info: {data.Alerts_.Length} sheet problems detected.");
-                            for (var i = 0; i < data.Alerts_.Length; i++)
-                            {
-                                Debug.LogAssertion(data.Alerts_[i]);
-                            }
-                            return false;
-                        }
-                        else if(data.Masters_.Length < 1)
-                        {
-                            Debug.LogError("MasterLoader Info: Loadable master is nothing. Please fix sheet problems.");
-                            return false;
-                        }
-                        else
-                        {
-                            Debug.Log("MasterLoader Info: Getting Sheet has completed.");
-                            ConfigData.Masters_ = data.Masters_;
-                            RemoveOldMasterDictionary();
-                            SaveConfig();
-                            return true;
-                        }
-                    }
+                    $"{StringStore.URL}{sheetUrl}"
                 }
-            }
-            catch (Exception e)
+            );
+
+            var json = WebRequest.SendWebRequest
+            (
+                url,
+                "Fetching Master Name..."
+            );
+
+            var result = JsonUtility.FromJson<Result>(json);
+            if (result.Alerts.Length > 0)
             {
-                EditorUtility.ClearProgressBar();
-                Debug.Log("MasterLoader Info: Request has failed.");
-                Debug.LogException(e);
+                Debug.LogError($"MasterLoader Info: {result.Alerts.Length} sheet problems detected.");
+                for (var i = 0; i < result.Alerts.Length; i++)
+                {
+                    Debug.LogAssertion(result.Alerts[i]);
+                }
                 return false;
+            }
+            else if (result.Masters.Length < 1)
+            {
+                Debug.LogError("MasterLoader Info: Loadable master is nothing. Please fix sheet problems.");
+                return false;
+            }
+            else
+            {
+                Debug.Log("MasterLoader Info: Getting Sheet has completed.");
+                ConfigData.MasterBody.SetMasters(result.Masters);
+                SaveConfig();
+                return true;
             }
         }
 
@@ -447,33 +328,20 @@ namespace MasterLoader.Core
             EditorUtility.SetDirty(config);
         }
 
-        private static void RemoveOldMasterDictionary()
-        {
-            var oldMasters = ConfigData.MasterNamespaceList_.Where(m => !ConfigData.Masters_.Contains(m.MasterName)).ToList();
-            for (var i = 0; i < oldMasters.Count; i++)
-            {
-                if (ConfigData.Masters_.Contains(oldMasters[i].MasterName))
-                {
-                    ConfigData.MasterNamespaceList_.Remove(oldMasters[i]);
-                    Debug.Log($"MasterLoader Info: {oldMasters[i]} is removed because it no longer used");
-                }
-            }
-        }
-
         private static ConfigObject GetConfigObject()
         {
-            var obj = Resources.Load<ConfigObject>(_CONFIG_PATH);
+            var obj = Resources.Load<ConfigObject>(StringStore.CONFIG_PATH);
             if (obj == null)
             {
                 var asset = CreateInstance<ConfigObject>();
-                AssetDatabase.CreateAsset(asset, _CONFIG_PATH);
+                AssetDatabase.CreateAsset(asset, StringStore.CONFIG_PATH);
                 obj = asset;
             }
             obj.hideFlags = HideFlags.NotEditable;
             return obj;
         }
 
-        public static Config LoadConfig()
+        public static IConfig LoadConfig()
         {
             return GetConfigObject().Config;
         }
@@ -481,6 +349,12 @@ namespace MasterLoader.Core
         public static void UpdateConfig()
         {
             ConfigData = LoadConfig();
+        }
+
+        public static void RefreshConfig()
+        {
+            GetConfigObject().RefreshConfig();
+            ConfigData = GetConfigObject().Config;
         }
     }
 }

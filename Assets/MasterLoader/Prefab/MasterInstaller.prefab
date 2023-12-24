@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28fd2b3a85f3b50469dfacd27873a81a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _testMaster: {fileID: 0}
-  _second: {fileID: 0}
-  _create: {fileID: 0}
+  _Character: {fileID: 11400000, guid: 6659afbb04d765340ad4d3bb92367c16, type: 2}
+  _Narrative: {fileID: 11400000, guid: 1f4d1d7f2286b854c826d55e94bec70b, type: 2}
+  _Topic: {fileID: 11400000, guid: 7aee8711154c1774a8fc724f8e26c0bf, type: 2}
+  _TopicOption: {fileID: 11400000, guid: a2eb1761c91510e4c8fb3e6704b39898, type: 2}

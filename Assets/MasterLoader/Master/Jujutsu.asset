@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4aa3c3b1c43e802459bf88ab9ed5b4db, type: 3}
+  m_Name: Jujutsu
+  m_EditorClassIdentifier: 
+  _JujutsuList:
+  - Id: 0
+    Name: Itadori
+    Png: Itarodri.png

@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 using System;
 using System.IO;
@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using MasterLoaderConfig;
+using System.Text.RegularExpressions;
 
 namespace MasterLoader.Core
 {
@@ -13,29 +14,50 @@ namespace MasterLoader.Core
     {
         static CodeGenerator() { }
 
-        private class EnumValue
-        {
-            public string Parameter;
-            public List<string> ValueList = new List<string>();
-        }
-
-        private static string _WARNING_MESSAGE = $"/*{_LINE}" +
-$"* ---------------------------------------------{_LINE}" +
-$"*this Code is Auto Generated.{_LINE}" +
-$"* All Changes will be nothing when regenerated.{_LINE}" +
-$"* ---------------------------------------------{_LINE}" +
-$"* これは自動生成コードです。{_LINE}" +
-$"* このコードに行った変更は自動生成時に破棄されます。{_LINE}" +
-$"* ---------------------------------------------{_LINE}" +
-$"*/{_LINE}{_LINE}";
+        private static string _WARNING_MESSAGE = $"/*{GetLine()}" +
+$"* ---------------------------------------------{GetLine()}" +
+$"*this Code is Auto Generated.{GetLine()}" +
+$"* All Changes will be nothing when regenerated.{GetLine()}" +
+$"* ---------------------------------------------{GetLine()}" +
+$"* これは自動生成コードです。{GetLine()}" +
+$"* このコードに行った変更は自動生成時に破棄されます。{GetLine()}" +
+$"* ---------------------------------------------{GetLine()}" +
+$"*/{GetLine()}{GetLine()}";
 
         public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
-        private static List<EnumValue> _enumValues = new List<EnumValue>();
+        private const string _DEFAULT_MASTER_PATH = "Assets/MasterLoader/Master";
 
         private const string _NAMESPACE = "MasterLoader";
         public const string CS = ".cs";
         private const string _TAB = "\t";
-        private const string _LINE = "\n";
+        private const string _SPACE = "    ";
+        private const string _CRLF = "\r\n";
+        private const string _CR = "\r";
+        private const string _LF = "\n";
+
+        private static string GetLine()
+        {
+            var windowConfig = MasterLoader.ConfigData.WindowConfig;
+            if (windowConfig.LineType == LineType.LF)
+            {
+                return _LF;
+            }
+            else if (windowConfig.LineType == LineType.CR)
+            {
+                return _CR;
+            }
+            return _CRLF;
+        }
+
+        private static string GetIndent()
+        {
+            var windowConfig = MasterLoader.ConfigData.WindowConfig;
+            if (windowConfig.IndentType == IndentType.TAB)
+            {
+                return _TAB;
+            }
+            return _SPACE;
+        }
 
         private static int GetPrime(int value, int length)
         {
@@ -47,63 +69,43 @@ $"*/{_LINE}{_LINE}";
             return _value;
         }
 
-        public static bool Generate(Config config, Base result)
+        public static bool Generate(IConfig config, MasterDataRaw result)
         {
-            var masterName = result.Name;
+            var masterName = GetPascalCase(result.Name);
             var typeList = result.Type;
             var commentList = result.Comment;
             var parameterList = result.Parameter;
             var valueList = result.ValueList;
 
-            var masterProperty = $"{ masterName }List";
+            CreateDirectoryIfNeed(CS_PATH, CS_PATH);
+            CreateDirectoryIfNeed
+            (
+                AssetDatabase.GetAssetPath(config.WindowConfig.MasterPathFolder),
+                _DEFAULT_MASTER_PATH
+            );
 
-            if (!Directory.Exists(CS_PATH))
-            {
-                Directory.CreateDirectory(CS_PATH);
-            }
-            if (!Directory.Exists(AssetDatabase.GetAssetPath(config.MasterPathFolder_)))
-            {
-                var path = AssetDatabase.GetAssetPath(config.MasterPathFolder_);
-                if (string.IsNullOrEmpty(path))
-                {
-                    path = "Assets/MasterLoader/Master";
-                }
-                Directory.CreateDirectory(path);
-            }
             var body = string.Empty;
             for (var i = 0; i < typeList.Length; i++)
             {
-                var comment = string.Empty;
-                if (!string.IsNullOrEmpty(commentList[i]))
-                {
-                    var comments = commentList[i].Split('\n');
-                    for (var row = 0; row < comments.Length; row++)
-                    {
-                        comment += $"{GetBaseIndent(2)}/// {comments[row]}";
-                    }
-                    comment = 
-                        $"{_TAB}{_TAB}/// <summary>" +
-                        $"{comment}" +
-                        $"{GetBaseIndent(2)}/// </summary>{_LINE}";
-                }
-
-                body +=
-                    _LINE +
-                    $"{comment}" +
-                    $"{_TAB}{_TAB}public {GetParameterString(typeList[i], parameterList[i])};"; ;
+                body += GetParameterArgumentCode
+                (
+                    commentList[i],
+                    typeList[i],
+                    parameterList[i]
+                );
             }
 
-            var rowCode = _WARNING_MESSAGE;
+            var rawCode = string.Empty;
+            rawCode += _WARNING_MESSAGE;
 
             var parameterCode = string.Empty;
 
-            var nameSpace = string.IsNullOrEmpty(config.NameSpace_) ?
-                $"namespace {_NAMESPACE}" :
-                $"namespace {config.NameSpace_}";
+            var nameSpace = GetNameSpaceCode(config.LoadingConfig.NameSpace);
 
+            #region コード作成
             try
             {
-                var switchCode = GenerateSwitchCode(parameterList, typeList, masterProperty, out var enumIndexList);
+                var switchCode = GenerateSwitchCode(parameterList, typeList, out var enumIndexList);
 
                 if (string.IsNullOrEmpty(switchCode))
                 {
@@ -112,42 +114,63 @@ $"*/{_LINE}{_LINE}";
 
                 parameterCode += GenerateParameterCode(typeList, switchCode);
 
-                AddEnumList(valueList, enumIndexList, typeList, parameterList);
+                AddEnumList(valueList, enumIndexList, typeList, parameterList, config);
 
-                rowCode +=
-                $"using System;{_LINE}" +
-                $"{nameSpace}{_LINE}" +
-                $"{{" +
-                $"{GetBaseIndent(1)}[Serializable]" +
-                $"{GetBaseIndent(1)}public class {masterName}" +
-                $"{GetBaseIndent(1)}{{" +
-                $"{GetBaseIndent(1)}{_TAB}{body}" +
-                $"{GetBaseIndent(1)}}}" +
-                $"{GenerateEnumCode()}{_LINE}" +
-                $"}}";
+                rawCode +=
+                AddNameSpaceCode
+                (
+                    nameSpace,
+                    GetClassCode(masterName, body)
+                );
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                return false;
             }
+            #endregion
 
+            var masterProperty = $"{masterName}List";
+
+            #region ファイル作成
             try
             {
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, parameterList.Length, parameterCode);
-                var masterCode = GenerateMasterCode(masterName, MasterLoader.MASTER, masterProperty, nameSpace, setDataCode);
+                var masterCode = GenerateMasterCode(masterName, StringStore.MASTER, masterProperty, nameSpace, setDataCode);
 
-                var rowCsPath = $"{CS_PATH}{masterName}{CS}";
-                var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
+                var rawCsPath = $"{CS_PATH}{masterName}{CS}";
+                var masterCsPath = $"{CS_PATH}{masterName}{StringStore.MASTER}{CS}";
 
-                using (var sw = new StreamWriter(rowCsPath, false, Encoding.UTF8))
+                using (var sw = new StreamWriter(rawCsPath, false, Encoding.UTF8))
                 {
-                    sw.Write(rowCode);
+                    sw.Write(rawCode);
                 }
                 using (var sw = new StreamWriter(masterCsPath, false, Encoding.UTF8))
                 {
                     sw.Write(masterCode);
                 }
+
+                if (config.LoadingConfig.EnumValueList.Count > 0)
+                {
+                    var code = string.Empty;
+                    if (config.LoadingConfig.EnumValueList.Count > 1)
+                    {
+                        foreach (var ev in config.LoadingConfig.EnumValueList)
+                        {
+                            var enumCode = AddNameSpaceCode
+                            (
+                                nameSpace,
+                                GenerateEnumCode(ev),
+                                false
+                            );
+                            var enumCsPath = $"{CS_PATH}{GetPascalCase(ev.Parameter)}{CS}";
+                            using (var sw = new StreamWriter(enumCsPath, false, Encoding.UTF8))
+                            {
+                                sw.Write(enumCode);
+                            }
+                        }
+                    }
+                }
+
                 AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
 
                 return true;
@@ -158,19 +181,103 @@ $"*/{_LINE}{_LINE}";
                 Debug.LogError("MasterLoader Info: MasterLoader successed loading master data, but couldn't get argument successfuly.\n please check your master sheet's 'type row' or 'sheet name'");
                 return false;
             }
+            #endregion
         }
 
-        public static bool GenerateInstaller(Config config)
+        private static string GetCommentCode(string comment)
+        {
+            var body = string.Empty;
+            if (!string.IsNullOrEmpty(comment))
+            {
+                var comments = comment.Split(GetLine());
+                for (var row = 0; row < comments.Length; row++)
+                {
+                    body += $"{GetBaseIndent(2)}/// {comments[row]}";
+                }
+                return
+                    $"{GetBaseIndent(2)}/// <summary>" +
+                    $"{body}" +
+                    $"{GetBaseIndent(2)}/// </summary>{GetLine()}";
+            }
+            return body;
+        }
+
+        private static string GetParameterArgumentCode(string comment, string type, string parameter)
+        {
+            return
+                GetLine() +
+                $"{GetCommentCode(comment)}" +
+                $"{GetIndent()}{GetIndent()}public {GetParameterString(type, parameter)};"; ;
+        }
+
+        private static string GetNameSpaceCode(string nameSpace)
+        {
+            return string.IsNullOrEmpty(nameSpace) ?
+                $"namespace {_NAMESPACE}" :
+                $"namespace {nameSpace}";
+        }
+
+        private static string GetClassCode(string masterName, string body)
+        {
+            return
+                $"{GetBaseIndent(1)}[Serializable]" +
+                $"{GetBaseIndent(1)}public class {GetPascalCase(masterName)}" +
+                $"{GetBaseIndent(1)}{{" +
+                $"{GetBaseIndent(1)}{GetIndent()}{body}" +
+                $"{GetBaseIndent(1)}}}";
+        }
+
+        private static void CreateDirectoryIfNeed(string targetPath, string defaultPath)
+        {
+            if (!Directory.Exists(targetPath))
+            {
+                if (string.IsNullOrEmpty(targetPath))
+                {
+                    targetPath = _DEFAULT_MASTER_PATH;
+                }
+                Directory.CreateDirectory(targetPath);
+            }
+        }
+
+        private static string GetUsingSystemCode()
+        {
+            return
+            $"using System;{GetLine()}";
+        }
+
+        private static string AddNameSpaceCode(string nameSpace, string body, bool needUsingSystem = true)
+        {
+            var code = string.Empty;
+            if (needUsingSystem)
+            {
+                code = GetUsingSystemCode();
+            }
+            return
+            code +
+            $"{nameSpace}{GetLine()}" +
+            $"{{" +
+            $"{body}{GetLine()}"+
+            $"}}";
+        }
+
+        public static bool GenerateInjector(IConfig config)
         {
             try
             {
-                var installerCode = _WARNING_MESSAGE;
-                installerCode += GenerateInstallerCode(config);
+                var injectorCode = _WARNING_MESSAGE;
+                injectorCode += GenerateFacadeCode
+                (
+                    config.WindowConfig,
+                    config.LoadingConfig,
+                    config.MasterBody
+                );
 
-                var installerCsPath = $"{MasterLoader.UTILITY_PATH}MasterInstaller{CS}";
-                using (var sw = new StreamWriter(installerCsPath, false, Encoding.UTF8))
+                CreateDirectoryIfNeed(StringStore.FACADE_PATH, StringStore.FACADE_PATH);
+
+                var facadeCsPath = $"{StringStore.FACADE_PATH}{StringStore.MASTER_FACADE_NAME}{CS}";
+                using (var sw = new StreamWriter(facadeCsPath, false, Encoding.UTF8))
                 {
-                    sw.Write(installerCode);
+                    sw.Write(injectorCode);
                 }
                 AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
             }
@@ -186,7 +293,7 @@ $"*/{_LINE}{_LINE}";
         {
             if (type.Equals("enum"))
             {
-                return $"{parameter.ToUpper()} {ReplacePublicName(parameter)}";
+                return $"{GetPascalCase(parameter)} {GetPascalCase(parameter)}";
             }
             else
             {
@@ -194,7 +301,7 @@ $"*/{_LINE}{_LINE}";
             }
         }
 
-        private static void AddEnumList(string[] valueList, List<int> enumIndexList, string[] typeList, string[] parameterList)
+        private static void AddEnumList(string[] valueList, List<int> enumIndexList, string[] typeList, string[] parameterList, IConfig config)
         {
             if(valueList.Length < 1)
             {
@@ -204,39 +311,53 @@ $"*/{_LINE}{_LINE}";
             {
                 foreach (var enumIndex in enumIndexList)
                 {
-                    if (GetPrime(i, typeList.Length) == enumIndex)
+                    if (!IsEnumIndex(i, typeList, enumIndex))
                     {
-                        var value = valueList[i];
-                        //Debug.Log(value);
-                        var hasExisted = false;
-                        if (_enumValues.Count > 0)
+                        continue;
+                    }
+                    var parameter = parameterList[enumIndex];
+                    var value = valueList[i];
+                    //Debug.Log(value);
+                    if (IsExistedEnum(config, parameter))
+                    {
+                        foreach (var ev in config.LoadingConfig.EnumValueList)
                         {
-                            foreach (var ev in _enumValues)
+                            if (!string.Equals(ev.Parameter, parameter))
                             {
-                                hasExisted = ev.Parameter.Equals(parameterList[enumIndex]);
-                                if (!hasExisted)
-                                {
-                                    continue;
-                                }
-                                if (ev.ValueList.Contains(value))
-                                {
-                                    //Debug.Log($"MasterLoaderInfo: {parameterList[enumIndex]} and {value} has existed");
-                                    break;
-                                }
+                                continue;
+                            }
+                            if (!ev.ValueList.Contains(value))
+                            {
                                 ev.ValueList.Add(value);
                                 break;
                             }
                         }
-                        if (!hasExisted)
-                        {
-                            _enumValues.Add(new EnumValue { Parameter = parameterList[enumIndex], ValueList = new List<string>() { value } });
-                        }
+                    }
+                    else
+                    {
+                        AppendEnumValue(config, parameterList[enumIndex], value);
                     }
                 }
             }
         }
 
-        private static string GenerateSwitchCode(string[] parameterList, string[] typeList, string masterProperty, out List<int> enumIndexList)
+        private static bool IsEnumIndex(int index, string[] typeList, int enumIndex)
+        {
+            return GetPrime(index, typeList.Length) == enumIndex;
+        }
+
+        private static bool IsExistedEnum(IConfig config, string parameter)
+        {
+            return config.LoadingConfig.EnumValueList.Any(ev => ev.Parameter.Equals(parameter));
+        }
+
+        private static void AppendEnumValue(IConfig config, string enumValue, string value)
+        {
+            Debug.Log($"Added Enum: {enumValue}");
+            config.LoadingConfig.AddEnumValue(new EnumValue { Parameter = enumValue, ValueList = new List<string>() { value } });
+        }
+
+        private static string GenerateSwitchCode(string[] parameterList, string[] typeList, out List<int> enumIndexList)
         {
             enumIndexList = new List<int>();
             var code = string.Empty;
@@ -250,25 +371,25 @@ $"*/{_LINE}{_LINE}";
                         code +=
                         $"{GetBaseIndent(6)}case {parameterIndex}:" +
                         $"{GetBaseIndent(6)}{{" +
-                        $"{GetBaseIndent(6)}{_TAB}var value = data[valueIndex];" +
-                        $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+                        $"{GetBaseIndent(6)}{GetIndent()}var value = data[valueIndex];" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetInputCode(parameter)}" +
                         $"{GetBaseIndent(6)}}}";
                         break;
                     case "int":
                     case "float":
                     case "double":
                     case "bool":
-                        code += GetSwitchCode(type, masterProperty, parameter, parameterIndex);
+                        code += GetSwitchCode(type, parameter, parameterIndex);
                         break;
                     case "enum":
                         code += $"{GetBaseIndent(6)}case {parameterIndex}:" +
                         $"{GetBaseIndent(6)}{{" +
-                        $"{GetBaseIndent(6)}{_TAB}if (!Enum.TryParse<{parameter.ToUpper()}>(data[valueIndex], out var value))" +
-                        $"{GetBaseIndent(6)}{_TAB}{{" +
-                        $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
-                        $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
-                        $"{GetBaseIndent(6)}{_TAB}}}" +
-                        $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+                        $"{GetBaseIndent(6)}{GetIndent()}if (!Enum.TryParse<{GetPascalCase(parameter)}>(data[valueIndex], out var value))" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{{" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}break;" +
+                        $"{GetBaseIndent(6)}{GetIndent()}}}" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetInputCode(parameter)}" +
                         $"{GetBaseIndent(6)}}}";
                         enumIndexList.Add(parameterIndex);
                         break;
@@ -289,205 +410,200 @@ $"*/{_LINE}{_LINE}";
             $"{GetBaseIndent(5)}}}";
         }
 
-        private static string GenerateEnumCode()
+        private static string GenerateEnumCode(EnumValue enumValue)
         {
-            var code = string.Empty;
-            if (_enumValues.Count < 1)
+            var valuesString = string.Empty;
+            for (var vIndex = 0; vIndex < enumValue.ValueList.Count; vIndex++)
             {
-                return code;
+                valuesString +=
+                $"{GetBaseIndent(2)}{GetPascalCase(enumValue.ValueList[vIndex])},";
             }
-            foreach (var ev in _enumValues)
-            {
-                var valuesString = string.Empty;
-                for (var vIndex = 0; vIndex < ev.ValueList.Count; vIndex++)
-                {
-                    valuesString +=
-                    $"{GetBaseIndent(2)}{ev.ValueList[vIndex]},";
-                }
-                code += $"{_LINE}" +
-                $"{GetBaseIndent(1)}public enum {ev.Parameter.ToUpper()}" +
-                $"{GetBaseIndent(1)}{{{valuesString}" +
-                $"{GetBaseIndent(1)}}}";
-            }
+            var code =
+            _WARNING_MESSAGE +
+            $"{GetBaseIndent(1)}public enum {GetPascalCase(enumValue.Parameter)}" +
+            $"{GetBaseIndent(1)}{{{GetPascalCase(valuesString)}" +
+            $"{GetBaseIndent(1)}}}";
             return code;
         }
 
         private static string GenerateMasterFunctionCode(string masterName, string masterProperty, string[] valueList, int length, string parameterCode)
         {
             return
-            $"{GetBaseIndent(3)}var dataList = new List<{masterName}>();" +
-            $"{GetBaseIndent(3)}var obj = new {masterName}{{}};" +
+            $"{GetBaseIndent(3)}var dataList = new List<{GetPascalCase(masterName)}>();" +
+            $"{GetBaseIndent(3)}var obj = new {GetPascalCase(masterName)}{{}};" +
             $"{GetBaseIndent(3)}var doneIndex = 0;" +
             $"{GetBaseIndent(3)}for (var valueIndex = 0; valueIndex < {valueList.Length}; valueIndex++)" +
             $"{GetBaseIndent(3)}{{" +
-            $"{GetBaseIndent(3)}{_TAB}var isDone = false;" +
-            $"{GetBaseIndent(3)}{_TAB}if (valueIndex == 0 || doneIndex >= {length})" +
-            $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}doneIndex = 0;" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}obj = new {masterName}{{}};" +
-            $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}for (var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
-            $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}if (isDone)" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}{_TAB}continue;" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}{parameterCode}" +
-            $"{GetBaseIndent(3)}{_TAB}}}" +
-            $"{GetBaseIndent(3)}{_TAB}if (doneIndex == {length})" +
-            $"{GetBaseIndent(3)}{_TAB}{{" +
-            $"{GetBaseIndent(3)}{_TAB}{_TAB}dataList.Add(obj);" +
-            $"{GetBaseIndent(3)}{_TAB}}}" +
+            $"{GetBaseIndent(3)}{GetIndent()}var isDone = false;" +
+            $"{GetBaseIndent(3)}{GetIndent()}if (valueIndex == 0 || doneIndex >= {length})" +
+            $"{GetBaseIndent(3)}{GetIndent()}{{" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}doneIndex = 0;" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}obj = new {GetPascalCase(masterName)}{{}};" +
+            $"{GetBaseIndent(3)}{GetIndent()}}}" +
+            $"{GetBaseIndent(3)}{GetIndent()}for (var parameterIndex = 0; parameterIndex < {length}; parameterIndex++)" +
+            $"{GetBaseIndent(3)}{GetIndent()}{{" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}if (isDone)" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}{{" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}{GetIndent()}continue;" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}}}" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}{parameterCode}" +
+            $"{GetBaseIndent(3)}{GetIndent()}}}" +
+            $"{GetBaseIndent(3)}{GetIndent()}if (doneIndex == {length})" +
+            $"{GetBaseIndent(3)}{GetIndent()}{{" +
+            $"{GetBaseIndent(3)}{GetIndent()}{GetIndent()}dataList.Add(obj);" +
+            $"{GetBaseIndent(3)}{GetIndent()}}}" +
             $"{GetBaseIndent(3)}}}" +
-            $"{GetBaseIndent(3)}_{masterProperty} = dataList;";
+            $"{GetBaseIndent(3)}{GetLowerPascalCase(masterProperty)} = dataList;";
         }
 
         private static string GenerateMasterCode(string masterName, string Master, string masterProperty, string nameSpace, string setDataCode)
         {
             return
             _WARNING_MESSAGE +
-            $"using UnityEngine;{_LINE}" +
-            $"using System.Collections.Generic;{_LINE}" +
-            $"using System;{_LINE}{_LINE}" +
-            $"{nameSpace}{_LINE}" +
+            $"using UnityEngine;{GetLine()}" +
+            $"using System.Collections.Generic;{GetLine()}" +
+            $"using System;{GetLine()}{GetLine()}" +
+            $"{nameSpace}{GetLine()}" +
             $"{{" +
-            $"{GetBaseIndent(1)}public class {masterName}{Master} : ScriptableObject" +
+            $"{GetBaseIndent(1)}public class {GetPascalCase(masterName)}{Master} : ScriptableObject" +
             $"{GetBaseIndent(1)}{{" +
-            $"{GetBaseIndent(1)}{_TAB}public List<{masterName}> {ReplacePublicName(masterProperty)} {{ get {{ return _{masterProperty}; }} }}" +
-            $"{GetBaseIndent(1)}{_TAB}[SerializeField]" +
-            $"{GetBaseIndent(1)}{_TAB}private List<{masterName}> _{masterProperty} = new List<{masterName}>();{_LINE}" +
+            $"{GetBaseIndent(1)}{GetIndent()}public List<{GetPascalCase(masterName)}> {GetPascalCase(masterProperty)} {{ get {{ return {GetLowerPascalCase(masterProperty)}; }} }}" +
+            $"{GetBaseIndent(1)}{GetIndent()}[SerializeField]" +
+            $"{GetBaseIndent(1)}{GetIndent()}private List<{GetPascalCase(masterName)}> {GetLowerPascalCase(masterProperty)} = new List<{GetPascalCase(masterName)}>();{GetLine()}" +
 
-            $"{GetBaseIndent(1)}{_TAB}public void SetData(string[] data)" +
-            $"{GetBaseIndent(1)}{_TAB}{{" +
+            $"{GetBaseIndent(1)}{GetIndent()}public void SetData(string[] data)" +
+            $"{GetBaseIndent(1)}{GetIndent()}{{" +
             $"{setDataCode}" +
-            $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
+            $"{GetBaseIndent(1)}{GetIndent()}}}{GetLine()}" +
 
-            $"{GetBaseIndent(1)}{_TAB}private int GetPrime(int value, int length)" +
-            $"{GetBaseIndent(1)}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}var _value = value;" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}while (_value >= length)" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}{_TAB}_value -= length;" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}}}" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}return _value;" +
-            $"{GetBaseIndent(1)}{_TAB}}}{_LINE}" +
+            $"{GetBaseIndent(1)}{GetIndent()}private int GetPrime(int value, int length)" +
+            $"{GetBaseIndent(1)}{GetIndent()}{{" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}var _value = value;" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}while (_value >= length)" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}{{" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}{GetIndent()}_value -= length;" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}}}" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}return _value;" +
+            $"{GetBaseIndent(1)}{GetIndent()}}}{GetLine()}" +
 
-            $"{GetBaseIndent(1)}{_TAB}private void OutputParseErrorLog(string s, string type)" +
-            $"{GetBaseIndent(1)}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}if (string.IsNullOrEmpty(s))" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}{{" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}{_TAB}return;" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}}}" +
-            $"{GetBaseIndent(1)}{_TAB}{_TAB}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
-            $"{GetBaseIndent(1)}{_TAB}}}" +
+            $"{GetBaseIndent(1)}{GetIndent()}private void OutputParseErrorLog(string s, string type)" +
+            $"{GetBaseIndent(1)}{GetIndent()}{{" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}if (string.IsNullOrEmpty(s))" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}{{" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}{GetIndent()}return;" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}}}" +
+            $"{GetBaseIndent(1)}{GetIndent()}{GetIndent()}Debug.LogError(($\"MasterLoaderInfo: could not cast {{s}} to {{type}}.\"));" +
+            $"{GetBaseIndent(1)}{GetIndent()}}}" +
             $"{GetBaseIndent(1)}}}" +
-            $"{_LINE}}}";
+            $"{GetLine()}}}";
         }
 
-        private static string GenerateInstallerCode(Config config)
+        private static string GenerateFacadeCode
+        (
+            IWindowConfig windowConfig,
+            ILoadingConfig loadingConfig,
+            IMasterBody masterBody
+        )
         {
-            var masterNamespace = config.MasterNamespaceList_;
-
-            var namespaceListCode = string.Empty;
+            var namespaceCode = string.Empty;
             var masterListCode = string.Empty;
-            var recordedNameSpace = new List<string>();
-            var installCode = string.Empty;
-            for (var i = 0; i < masterNamespace.Count; i++)
+            var facadeCode = string.Empty;
+            var nameSpace = loadingConfig.NameSpace;
+
+            for (var i = 0; i < masterBody.Masters.Length; i++)
             {
-                var masterName = masterNamespace.ElementAtOrDefault(i).MasterName;
-                var masterCsPath = $"{CS_PATH}{masterName}{MasterLoader.MASTER}{CS}";
-
-                if (!File.Exists(masterCsPath))
-                {
-                    continue;
-                }
-                var nameSpace = masterNamespace.ElementAtOrDefault(i).Namespace;
-                if (!recordedNameSpace.Contains(nameSpace))
-                {
-                    if(!string.IsNullOrEmpty(nameSpace))
-                    {
-                        recordedNameSpace.Add(nameSpace);
-                        namespaceListCode +=
-                        $"using {nameSpace};{_LINE}";
-                    }
-                }
-
+                var masterName = masterBody.Masters[i];
                 masterListCode +=
-                $"{GetBaseIndent(2)}public {masterName}{MasterLoader.MASTER} {ReplacePublicName(masterName)} {{ get {{ return _{masterName}; }} }}" +
+                $"{GetBaseIndent(2)}public {GetPascalCase(masterName)}{StringStore.MASTER} {GetPascalCase(masterName)} {{ get {{ return {GetLowerPascalCase(masterName)}; }} }}" +
                 $"{GetBaseIndent(2)}[SerializeField]" +
-                $"{GetBaseIndent(2)}private {masterName}{MasterLoader.MASTER} _{masterName};";
+                $"{GetBaseIndent(2)}private {GetPascalCase(masterName)}{StringStore.MASTER} {GetLowerPascalCase(masterName)};";
 
-                var path = $"\"{AssetDatabase.GetAssetPath(config.MasterPathFolder_)}/{masterName}.asset\"";
-                installCode +=
-                $"{GetBaseIndent(2)}{_TAB}_{masterName} = AssetDatabase.LoadMainAssetAtPath({path}) as {masterName}{MasterLoader.MASTER};";
+                var path = $"\"{AssetDatabase.GetAssetPath(windowConfig.MasterPathFolder)}/{GetPascalCase(masterName)}.asset\"";
+                facadeCode +=
+                $"{GetBaseIndent(2)}{GetIndent()}{GetLowerPascalCase(masterName)} = AssetDatabase.LoadMainAssetAtPath({path}) as {GetPascalCase(masterName)}{StringStore.MASTER};";
+            }
+
+            facadeCode +=
+                $"{GetBaseIndent(2)}{GetIndent()}Debug.Log($\"MasterLoader Info: Master data has injected completely.\");";
+
+            if (!string.IsNullOrEmpty(nameSpace))
+            {
+                namespaceCode =
+                $"using {nameSpace};{GetLine()}";
             }
 
             var editorCode =
             $"#if UNITY_EDITOR" +
             $"{GetBaseIndent(2)}public void SetMaster()" +
             $"{GetBaseIndent(2)}{{" +
-            installCode +
-            $"{GetBaseIndent(2)}}}{_LINE}" +
+            facadeCode +
+            $"{GetBaseIndent(2)}}}{GetLine()}" +
             $"#endif";
             
             return
-            $"using UnityEngine;{_LINE}" +
-            $"#if UNITY_EDITOR{_LINE}" +
-            $"using UnityEditor;{_LINE}" +
-            $"#endif{_LINE}" +
-            $"{namespaceListCode}{_LINE}" +
-            $"namespace MasterLoader{_LINE}" +
+            $"using UnityEngine;{GetLine()}" +
+            $"#if UNITY_EDITOR{GetLine()}" +
+            $"using UnityEditor;{GetLine()}" +
+            $"#endif{GetLine()}" +
+            $"{namespaceCode}{GetLine()}" +
+            $"namespace MasterLoader{GetLine()}" +
             $"{{" +
-            $"{GetBaseIndent(1)}public class MasterInstaller : MonoBehaviour" +
+            $"{GetBaseIndent(1)}public class {StringStore.MASTER_FACADE_NAME} : MonoBehaviour" +
             $"{GetBaseIndent(1)}{{" +
             masterListCode +
-            $"{_LINE}" +
+            $"{GetLine()}" +
             editorCode +
             $"{GetBaseIndent(1)}}}" +
-            $"{_LINE}}}";
-        }
-
-        private static string ReplacePublicName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                return name;
-            }
-            var initial = name[0];
-            return char.ToUpper(initial) + name.Substring(1);
+            $"{GetLine()}}}";
         }
 
         private static string GetBaseIndent(int num = 4)
         {
-            var value = _LINE;
+            var value = GetLine();
             for(var i = 0; i < num; i++)
             {
-                value += _TAB;
+                value += GetIndent();
             }
             return value;
         }
 
-        private static string GetInputCode(string masterProperty, string parameter)
+        private static string GetInputCode(string parameter)
         {
             return
-            $"{GetBaseIndent(7)}obj.{ReplacePublicName(parameter)} = value;" +
+            $"{GetBaseIndent(7)}obj.{GetPascalCase(parameter)} = value;" +
             $"{GetBaseIndent(7)}isDone = true;" +
             $"{GetBaseIndent(7)}doneIndex++;" +
             $"{GetBaseIndent(7)}continue;";
         }
 
-        private static string GetSwitchCode(string type, string masterProperty, string parameter, int parameterIndex)
+        private static string GetSwitchCode(string type, string parameter, int parameterIndex)
         {
             return
             $"{GetBaseIndent(6)}case {parameterIndex}:" +
             $"{GetBaseIndent(6)}{{" +
-            $"{GetBaseIndent(6)}{_TAB}if (!{type}.TryParse(data[valueIndex], out var value))" +
-            $"{GetBaseIndent(6)}{_TAB}{{" +
-            $"{GetBaseIndent(6)}{_TAB}{_TAB}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
-            $"{GetBaseIndent(6)}{_TAB}{_TAB}break;" +
-            $"{GetBaseIndent(6)}{_TAB}}}" +
-            $"{GetBaseIndent(6)}{_TAB}{GetInputCode(masterProperty, parameter)}" +
+            $"{GetBaseIndent(6)}{GetIndent()}if (!{type}.TryParse(data[valueIndex], out var value))" +
+            $"{GetBaseIndent(6)}{GetIndent()}{{" +
+            $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
+            $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}break;" +
+            $"{GetBaseIndent(6)}{GetIndent()}}}" +
+            $"{GetBaseIndent(6)}{GetIndent()}{GetInputCode(parameter)}" +
             $"{GetBaseIndent(6)}}}";
+        }
+
+        private static string GetPascalCase(string body)
+        {
+            return Regex.Replace
+            (
+                body,
+                @"\b[a-z]",
+                match => match.Value.ToUpper()
+            );
+        }
+
+        private static string GetLowerPascalCase(string body)
+        {
+            body = GetPascalCase(body);
+            return $"_{body.Replace(body[0], char.ToLower(body[0]))}";
         }
     }
 }

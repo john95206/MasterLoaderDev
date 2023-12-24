@@ -12,20 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21a0730a44ef1724f99b1c223f57917f, type: 3}
   m_Name: Confing
   m_EditorClassIdentifier: 
-  Config:
-    DriveUrl: 
-    SheetUrl: 
-    IsFetched: 0
-    TabIndex: 0
-    SheetIndex: 0
-    Masters: []
-    CurrentMasterName: 
-    Alerts: []
-    NameSpace: 
-    MasterNamespaceList: []
-    MasterPathFolder: {fileID: 102900000, guid: fee099c53a52e4e4aa5b2866b6f6504e,
-      type: 3}
-    WaitCreateMaster: 0
-    Language: 0
-    LoadedResultList: []
-    CreatingMasterValueList: []
+  _config:
+    _windowConfig:
+      _driveUrl: https://drive.google.com/drive/u/0/folders/19yO_ZTjIBsD9yLHgk4TlunsfAqJMNiE_
+      _sheetUrl: https://docs.google.com/spreadsheets/d/1LV_3oUl8nnqKssgGFAhi0Dtjdgro8xFKDBwDZlRq_n0/edit#gid=0
+      _isFetched: 1
+      _windowTabIndex: 0
+      _masterPathFolder: {fileID: 102900000, guid: eca91dad17e9ac848bfdf73db233b57c, type: 3}
+      _lineType: 2
+      _indentType: 0
+    _sheetIndex: 1
+    _currentMasterName: Narrative
+    _currentLanguage: 0
+    _masterBody:
+      _masters:
+      - Character
+      - Narrative
+      - Topic
+      - TopicOption
+    _createConfig:
+      _creatingMasterValueList:
+      - VariableName: Test
+        Type: int
+        Comment: test
+    _loadingConfig:
+      _nameSpace: WaitingForYou.Master
+      _isWaitingCreateMaster: 0
+      _loadedResultList: []
+      _enumValueList: []
