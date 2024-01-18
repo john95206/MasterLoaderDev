@@ -588,6 +588,10 @@ namespace MasterLoader.Core
         {
             DrawRefreshConfigButton();
 
+            if (MasterLoader.ConfigData == null)
+            {
+                MasterLoader.UpdateConfig();
+            }
             var configData = MasterLoader.ConfigData;
 
             EditorGUILayout.Space();

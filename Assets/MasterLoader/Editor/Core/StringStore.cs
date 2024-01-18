@@ -3,7 +3,7 @@ namespace MasterLoader.Core
     public static class StringStore
     {
         public const string FACADE_PATH = "Assets/MasterLoader/Scripts/Facade/";
-        public const string CONFIG_PATH = "Confing";
+        public const string CONFIG_PATH = "Config";
         public const string PREFAB_PATH = "Assets/MasterLoader/Prefab";
         public const string GENERATED_PATH = "Assets/MasterLoader/Scripts/Generated/";
         public const string MASTER = "Master";

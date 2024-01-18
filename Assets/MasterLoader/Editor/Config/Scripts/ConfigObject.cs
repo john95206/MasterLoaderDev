@@ -2,6 +2,7 @@
 
 namespace MasterLoaderConfig
 {
+    [CreateAssetMenu(menuName = "MasterLoader/Config")]
     public class ConfigObject : ScriptableObject
     {
         [SerializeField]
