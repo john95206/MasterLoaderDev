@@ -15,7 +15,8 @@ namespace MasterLoader.Core
     [InitializeOnLoad]
     public class MasterLoader : Editor
     {
-        public static IConfig ConfigData;
+        private static IConfig _config;
+        public static IConfig ConfigData => _config ?? UpdateConfig();
         private static MasterLoaderScheduler _scheduler = new MasterLoaderScheduler();
 
         /// <summary>
@@ -348,15 +349,16 @@ namespace MasterLoader.Core
             return GetConfigObject().Config;
         }
 
-        public static void UpdateConfig()
+        public static IConfig UpdateConfig()
         {
-            ConfigData = LoadConfig();
+            _config = LoadConfig();
+            return ConfigData;
         }
 
         public static void RefreshConfig()
         {
             GetConfigObject().RefreshConfig();
-            ConfigData = GetConfigObject().Config;
+            _config = GetConfigObject().Config;
         }
     }
 }
