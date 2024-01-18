@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace MasterLoader.Core
 {
@@ -11,5 +11,6 @@ namespace MasterLoader.Core
         public string[] Comment;
         public string[] ValueList;
         public string[] Alerts;
+        public EnumValue[] Enums;
     }
 }

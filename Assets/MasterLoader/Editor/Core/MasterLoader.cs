@@ -78,10 +78,11 @@ namespace MasterLoader.Core
 
             try
             {
-                var result = JsonUtility.FromJson<MasterDataRawAll>(json).Values;
+                var result = JsonUtility.FromJson<MasterDataRawAll>(json);
+                var resultValues = result.Values;
                 var _isValid = true;
 
-                foreach (var obj in result)
+                foreach (var obj in resultValues)
                 {
                     if (obj.Alerts?.Length > 0)
                     {
@@ -96,7 +97,8 @@ namespace MasterLoader.Core
                 {
                     throw new Exception(message: "");
                 }
-                ConfigData.LoadingConfig.SetLoadedResultList(result.ToList());
+                ConfigData.LoadingConfig.SetLoadedResultList(resultValues.ToList());
+                ConfigData.LoadingConfig.SetEnumValueList(result.Enums);
             }
             catch (Exception e)
             {
@@ -130,6 +132,7 @@ namespace MasterLoader.Core
                 return false;
             }
             ConfigData.LoadingConfig.AddLoadedResult(result);
+            ConfigData.LoadingConfig.SetEnumValueList(result.Enums);
             return true;
         }
 
@@ -213,7 +216,7 @@ namespace MasterLoader.Core
             RefreshLoadedResult();
             RefreshEnumValueList();
 
-            _scheduler.OnStartWaitingTicked(CreateInstaller);
+            _scheduler.OnStartWaitingTicked(CreateFacade);
         }
 
         private static void CreateMasterScriptableObjects(IConfig ConfigData)
@@ -247,10 +250,10 @@ namespace MasterLoader.Core
             ConfigData.LoadingConfig.ClearEnumValueList();
         }
 
-        private static void CreateInstaller()
+        private static void CreateFacade()
         {
-            var installer = AssetDatabase.LoadMainAssetAtPath($"{StringStore.PREFAB_PATH}/MasterInstaller.prefab") as GameObject;
-            if (installer == null)
+            var facade = AssetDatabase.LoadMainAssetAtPath($"{StringStore.PREFAB_PATH}/{StringStore.MASTER_FACADE_NAME}.prefab") as GameObject;
+            if (facade == null)
             {
                 if (!Directory.Exists($"{StringStore.PREFAB_PATH}/"))
                 {
@@ -258,10 +261,9 @@ namespace MasterLoader.Core
                 }
                 var go = new GameObject();
                 go.AddComponent<MasterFacade>();
-                installer = PrefabUtility.SaveAsPrefabAsset(go, $"{StringStore.PREFAB_PATH}/MasterInstaller.prefab");
-                DestroyImmediate(go);
+                facade = PrefabUtility.SaveAsPrefabAsset(go, $"{StringStore.PREFAB_PATH}/{StringStore.MASTER_FACADE_NAME}.prefab");
             }
-            var component = installer.GetComponent<MasterFacade>();
+            var component = facade.GetComponent<MasterFacade>();
             try
             {
                 component.SetMaster();

@@ -34,6 +34,7 @@ namespace MasterLoader.Core
                     }
 
                     var json = request.downloadHandler.text;
+                    Debug.Log(json);
                     if (json.Contains("<!DOCTYPE html>"))
                     {
                         throw new Exception(json);

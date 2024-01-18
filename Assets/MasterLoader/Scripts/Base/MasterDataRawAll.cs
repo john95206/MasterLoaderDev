@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using UnityEditor;
 
 namespace MasterLoader.Core
 {
@@ -6,5 +7,6 @@ namespace MasterLoader.Core
     public class MasterDataRawAll
     {
         public MasterDataRaw[] Values;
+        public EnumValue[] Enums;
     }
 }

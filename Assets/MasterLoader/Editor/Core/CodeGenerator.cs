@@ -114,8 +114,6 @@ $"*/{GetLine()}{GetLine()}";
 
                 parameterCode += GenerateParameterCode(typeList, switchCode);
 
-                AddEnumList(valueList, enumIndexList, typeList, parameterList, config);
-
                 rawCode +=
                 AddNameSpaceCode
                 (
@@ -162,7 +160,7 @@ $"*/{GetLine()}{GetLine()}";
                                 GenerateEnumCode(ev),
                                 false
                             );
-                            var enumCsPath = $"{CS_PATH}{GetPascalCase(ev.Parameter)}{CS}";
+                            var enumCsPath = $"{CS_PATH}{GetPascalCase(ev.Name)}{CS}";
                             using (var sw = new StreamWriter(enumCsPath, false, Encoding.UTF8))
                             {
                                 sw.Write(enumCode);
@@ -301,62 +299,6 @@ $"*/{GetLine()}{GetLine()}";
             }
         }
 
-        private static void AddEnumList(string[] valueList, List<int> enumIndexList, string[] typeList, string[] parameterList, IConfig config)
-        {
-            if(valueList.Length < 1)
-            {
-                return;
-            }
-            for (var i = 0; i < valueList.Length; i++)
-            {
-                foreach (var enumIndex in enumIndexList)
-                {
-                    if (!IsEnumIndex(i, typeList, enumIndex))
-                    {
-                        continue;
-                    }
-                    var parameter = parameterList[enumIndex];
-                    var value = valueList[i];
-                    //Debug.Log(value);
-                    if (IsExistedEnum(config, parameter))
-                    {
-                        foreach (var ev in config.LoadingConfig.EnumValueList)
-                        {
-                            if (!string.Equals(ev.Parameter, parameter))
-                            {
-                                continue;
-                            }
-                            if (!ev.ValueList.Contains(value))
-                            {
-                                ev.ValueList.Add(value);
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        AppendEnumValue(config, parameterList[enumIndex], value);
-                    }
-                }
-            }
-        }
-
-        private static bool IsEnumIndex(int index, string[] typeList, int enumIndex)
-        {
-            return GetPrime(index, typeList.Length) == enumIndex;
-        }
-
-        private static bool IsExistedEnum(IConfig config, string parameter)
-        {
-            return config.LoadingConfig.EnumValueList.Any(ev => ev.Parameter.Equals(parameter));
-        }
-
-        private static void AppendEnumValue(IConfig config, string enumValue, string value)
-        {
-            Debug.Log($"Added Enum: {enumValue}");
-            config.LoadingConfig.AddEnumValue(new EnumValue { Parameter = enumValue, ValueList = new List<string>() { value } });
-        }
-
         private static string GenerateSwitchCode(string[] parameterList, string[] typeList, out List<int> enumIndexList)
         {
             enumIndexList = new List<int>();
@@ -413,14 +355,14 @@ $"*/{GetLine()}{GetLine()}";
         private static string GenerateEnumCode(EnumValue enumValue)
         {
             var valuesString = string.Empty;
-            for (var vIndex = 0; vIndex < enumValue.ValueList.Count; vIndex++)
+            for (var vIndex = 0; vIndex < enumValue.Values.Length; vIndex++)
             {
                 valuesString +=
-                $"{GetBaseIndent(2)}{GetPascalCase(enumValue.ValueList[vIndex])},";
+                $"{GetBaseIndent(2)}{GetPascalCase(enumValue.Values[vIndex])},";
             }
             var code =
             _WARNING_MESSAGE +
-            $"{GetBaseIndent(1)}public enum {GetPascalCase(enumValue.Parameter)}" +
+            $"{GetBaseIndent(1)}public enum {GetPascalCase(enumValue.Name)}" +
             $"{GetBaseIndent(1)}{{{GetPascalCase(valuesString)}" +
             $"{GetBaseIndent(1)}}}";
             return code;

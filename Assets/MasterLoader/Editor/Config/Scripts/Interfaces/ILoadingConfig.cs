@@ -15,9 +15,7 @@ namespace MasterLoaderConfig
         void AddLoadedResult(MasterDataRaw loadedResult);
         bool RemoveLoadedResultList(MasterDataRaw loadedResult);
         ReadOnlyCollection<EnumValue> EnumValueList { get; }
-        void SetEnumValueList(List<EnumValue> enumValueList);
-        void AddEnumValue(EnumValue enumValue);
-        bool RemoveEnumValue(EnumValue enumValue);
+        void SetEnumValueList(EnumValue[] enumValues);
         void ClearLoadedResultList();
         void ClearEnumValueList();
     }

@@ -50,28 +50,14 @@ namespace MasterLoaderConfig
             _isWaitingCreateMaster = isWaitingCreateMaster;
         }
 
-        public void AddEnumValue(EnumValue enumValue)
+        public void SetEnumValueList(EnumValue[] enumValues)
         {
-            if (_enumValueList.Any(v => v.Parameter == enumValue.Parameter))
-            {
-                return;
-            }
-            _enumValueList.Add(enumValue);
-        }
-
-        public void SetEnumValueList(List<EnumValue> enumValueList)
-        {
-            _enumValueList = enumValueList;
+            _enumValueList = enumValues.ToList();
         }
 
         public bool RemoveLoadedResultList(MasterDataRaw loadedResult)
         {
             return _loadedResultList.Remove(loadedResult);
-        }
-
-        public bool RemoveEnumValue(EnumValue enumValue)
-        {
-            return _enumValueList.Remove(enumValue);
         }
 
         public void ClearLoadedResultList()

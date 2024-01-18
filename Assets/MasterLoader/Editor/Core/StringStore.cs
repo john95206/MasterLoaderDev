@@ -8,7 +8,7 @@ namespace MasterLoader.Core
         public const string GENERATED_PATH = "Assets/MasterLoader/Scripts/Generated/";
         public const string MASTER = "Master";
         private const string _API_URL = "https://script.google.com/macros/s/";
-        private const string _DEPLOY_ID = "AKfycbzP5q4dsdCtKjZ9Ckmezuoau4IrG0XZoxmahEt1Mv8XpcouvEkhbalSfdjKKpeO226T";
+        private const string _DEPLOY_ID = "AKfycbxxODp1M7c3zFr-C4gLe8cYZWephd1wsRnVP6uOhU9nFK2LFqwjLIR4yA2oHn_sDVKG";
         private const string _EXEC = "/exec?";
         public const string URL = "url=";
         public const string GoogleSpreadsheetURL = "https://sheets.googleapis.com/v4/spreadsheets";
