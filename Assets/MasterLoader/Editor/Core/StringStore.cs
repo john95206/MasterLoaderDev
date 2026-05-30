@@ -2,13 +2,10 @@ namespace MasterLoader.Core
 {
     public static class StringStore
     {
-        public const string FACADE_PATH = "Assets/MasterLoader/Scripts/Facade/";
         public const string CONFIG_PATH = "Config";
-        public const string PREFAB_PATH = "Assets/MasterLoader/Prefab";
-        public const string GENERATED_PATH = "Assets/MasterLoader/Scripts/Generated/";
         public const string MASTER = "Master";
         private const string _API_URL = "https://script.google.com/macros/s/";
-        private const string _DEPLOY_ID = "AKfycbxxODp1M7c3zFr-C4gLe8cYZWephd1wsRnVP6uOhU9nFK2LFqwjLIR4yA2oHn_sDVKG";
+        private const string _DEPLOY_ID = "AKfycby-t0OHfPJAebie-FzG3Rnxe_mJBwOdv7WkjEHZIjry6ZvfAE1oncQkp75Iq2rRTOKM";
         private const string _EXEC = "/exec?";
         public const string URL = "url=";
         public const string GoogleSpreadsheetURL = "https://sheets.googleapis.com/v4/spreadsheets";

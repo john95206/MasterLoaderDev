@@ -1,0 +1,242 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6adbdb22181ce954da9d92cd427b2105, type: 3}
+  m_Name: Narrative
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::MasterLoader.NarrativeMaster
+  _narrativeList:
+  - NarrativeType: 0
+    Order: 0
+    Body: "\u3088\uFF5E\uFF5E\uFF5E\u3057\u3001\u304A\u5B9D\u63A2\u7D22\u304B\u3044\u3057\uFF5E\uFF01"
+    CharacterPoseType: 10
+  - NarrativeType: 0
+    Order: 1
+    Body: "\u3048\u30FC\u3068\u305F\u3057\u304B\u3001\u306F\u3084\u304F\u5E30\u3089\u306A\u3044\u3068\u51FA\u53E3\u304C\u3075\u3055\u304C\u308B\u3093\u3060\u3088\u306D\u2026"
+    CharacterPoseType: 9
+  - NarrativeType: 0
+    Order: 2
+    Body: "\u304A\u3044\u3057\u305D\u3046\u306A \u304A\u5B9D\u3092 \u307F\u3064\u304F\u308D\u3063\u3066
+      \u304C\u3063\u307D\u308A \u7A3C\u3044\u3058\u3083\u3046\u305E\uFF5E"
+    CharacterPoseType: 8
+  - NarrativeType: 1
+    Order: 0
+    Body: "\u304A\u3001\u306A\u3093\u304B\u3042\u308B\uFF01"
+    CharacterPoseType: 7
+  - NarrativeType: 2
+    Order: 0
+    Body: "\u30B7\u30E3\u30F3\u30C7\u30A3\u3061\u3083\u3093\u306B\u307E\u304B\u305B\u306A\u3055\uFF5E\u3044\u3063"
+    CharacterPoseType: 10
+  - NarrativeType: 3
+    Order: 1
+    Body: "\u3080\u3080\u3063\u306A\u3093\u3060\u3053\u308C\u2026\u3002\u307F\u305F\u3053\u3068\u306A\u3044\u304B\u3082\u2026\u3002"
+    CharacterPoseType: 1
+  - NarrativeType: 4
+    Order: 0
+    Body: "\u304A\u3063\u305F\u304B\u3063\u3089\u3058\u3083\u3041\uFF5E\uFF5E\uFF5E\u3093\u3063\uFF01\n\u3042\u3044\u305F\u304B\u3063\u305F\u3088\u3049\uFF01
+      \u3053\u306E\u4E16\u3067\u3042\u305F\u3057\u306E\u3064\u304E\u306B\u7F8E\u3057\u3044\u3093\u3058\u3083\u306A\u3044\uFF1F\u3053\u308C\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 5
+    Order: 0
+    Body: "\u3093\uFF5E\u3001\u307E\u3042\u3053\u3093\u306A\u3082\u3093\u304B\u3002\u3064\u304E\u3044\u3053\u3001\u3064\u304E\u3043\uFF01"
+    CharacterPoseType: 2
+  - NarrativeType: 6
+    Order: 0
+    Body: "\u306F\u3041\uFF5E\uFF01\uFF1F\u30B7\u30E7\u30DC\u3059\u304E\u3001\u306A\u3081\u3066\u3093\u306E\uFF5E\uFF5E\uFF5E\uFF5E\uFF1F"
+    CharacterPoseType: 3
+  - NarrativeType: 7
+    Order: 0
+    Body: "\u3093\uFF5E\u3001\u3069\u3046\u3057\u3088\u3046\u304B\u306A\uFF1F"
+    CharacterPoseType: 0
+  - NarrativeType: 8
+    Order: 0
+    Body: "\u3093\uFF5E\u3001\u3069\u3046\u3057\u3088\n\u3044\u3063\u305D \u7BB1\u3054\u3068
+      \u6301\u3063\u3066\u304B\u3048\u3063\u3061\u3083\u3046\uFF1F"
+    CharacterPoseType: 0
+  - NarrativeType: 9
+    Order: 0
+    Body: "\u3046\u3048\u3063\u3001\u3082\u3061\u304D\u308C\u306A\u3044\u3058\u3083\u3093\u3002\u306A\u306B\u304B\u3059\u3066\u306A\u304D\u3083\u2026"
+    CharacterPoseType: 4
+  - NarrativeType: 10
+    Order: 0
+    Body: "\u304B\uFF5E\uFF5E\uFF5E\uFF5E\u3063\uFF01\uFF01\n\u3084\u3063\u3071\u9152\u3060\u3088\u306D\u3047\uFF01\uFF01\u306A\u3044\u3068\u3084\u3063\u3066\u3089\u3093\u306D\u3047\u3088\uFF01\u3082\u3063\u3068\u3082\u3063\u3066\u3053\u3044\u3084\uFF01\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 10
+    Order: 0
+    Body: "\u3093\u3048\u3047\uFF5E\uFF1F\uFF1F\uFF1F\u3088\u3063\u3066\u3089\u3044\u308C\u3059\u3088\uFF5E"
+    CharacterPoseType: 5
+  - NarrativeType: 10
+    Order: 1
+    Body: "\u3053\u306E\u30B7\u30E3\u30F3\u30C7\u30A3\u3061\u3083\u3093\u3092\u3088\u308F\u305B\u3066
+      \u3069\u3046\u3059\u308B\u3064\u3082\u308A\u30A3\uFF1F"
+    CharacterPoseType: 5
+  - NarrativeType: 11
+    Order: 0
+    Body: "\u3046\u3052\u3063\uFF01\u304A\u305F\u304B\u3089\u30CD\u30BA\u30DF\uFF01\uFF1F"
+    CharacterPoseType: 11
+  - NarrativeType: 11
+    Order: 1
+    Body: "\u3084\u3081\u308D\uFF5E\uFF5E\uFF5E\uFF01\u304B\u3070\u3093\u306B\u5165\u308B\u306A\u3041\uFF5E\uFF5E\uFF5E\uFF5E\uFF01"
+    CharacterPoseType: 1
+  - NarrativeType: 11
+    Order: 2
+    Body: "\u2026\u2026\u2026"
+    CharacterPoseType: 4
+  - NarrativeType: 11
+    Order: 3
+    Body: "\u304F\u3063\u305D\uFF5E\uFF01\u304A\u5B9D\u76D7\u307E\u308C\u305F\u3041\uFF5E\uFF01"
+    CharacterPoseType: 3
+  - NarrativeType: 12
+    Order: 0
+    Body: "\u30DF\u30DF\u30C3\u30AF\uFF01\uFF1F\n\u3073\u3063\u304F\u308A\u3057\u305F\u3041\uFF01"
+    CharacterPoseType: 11
+  - NarrativeType: 12
+    Order: 1
+    Body: "\u3053\u306E\u7F8E\u5C11\u5973\u30B7\u30E3\u30F3\u30C7\u30A3\u3061\u3083\u3093\u306B\u4F55\u3057\u3066\u304F\u308C\u3093\u306E\u3088\uFF01"
+    CharacterPoseType: 3
+  - NarrativeType: 12
+    Order: 2
+    Body: "\u2026\u2026\u2026\u3063\u3066\u3042\u308C\uFF1F\u306B\u3082\u3064 \u304C
+      \u3078\u3063\u3066\u308B\u3045\uFF5E\uFF01\uFF01"
+    CharacterPoseType: 11
+  - NarrativeType: 13
+    Order: 0
+    Body: "\u306A\u306B\u3053\u308C\uFF01\uFF1F\u8D85\u304A\u5B9D\u3058\u3083\u306A\uFF5E\u3044\uFF01\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 13
+    Order: 1
+    Body: "\u3067\u3082\u306A\u3093\u304B\u2026\u2026\u2026\u4F53\u304C\u304A\u3082\uFF5E\u3044\u2026\u2026\u2026\u6C17\u304C\u3059\u308B\uFF1F"
+    CharacterPoseType: 4
+  - NarrativeType: 14
+    Order: 0
+    Body: "\u3093\uFF1F \u306A\u306B\u304B\u3057\u3089\u3093\uFF1F \u3069\u3046\u3057\u305F\u306E\u30A9\u3093\uFF1F"
+    CharacterPoseType: 8
+  - NarrativeType: 14
+    Order: 1
+    Body: "\u3053\u306E\u5B50\u3042\u305F\u3057\u306B\u30C6\u30EC\u3066\u308B\uFF5E\uFF5E\uFF5E\uFF01
+      \u304B\u3063\u308F\u3044\u3044\uFF5E\uFF5E\uFF01"
+    CharacterPoseType: 7
+  - NarrativeType: 14
+    Order: 2
+    Body: "\u2026\u2026\u2026\u3075\u3045\u3002\u30A2\u30CF\u30CF\u3002\u3042\u3001\u3042\u3044\u305F"
+    CharacterPoseType: 10
+  - NarrativeType: 15
+    Order: 0
+    Body: "\u3084\u308A\u30A3\uFF01\uFF01\u30B3\u30A4\u30F3\u306E\u3084\u307E\uFF5E\uFF5E\uFF5E\uFF01\uFF01 "
+    CharacterPoseType: 8
+  - NarrativeType: 15
+    Order: 1
+    Body: "\u30B7\u30E3\u30F3\u30C7\u30A3\u3061\u3083\u3093\u304A\u91D1\u3060\u3041\u3044\u3059\u304D\uFF01\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 15
+    Order: 2
+    Body: "\u3093\uFF1F \u306A\u306B\u3088\u3053\u308C\uFF01\uFF1F"
+    CharacterPoseType: 9
+  - NarrativeType: 15
+    Order: 3
+    Body: "\u30B3\u30A4\u30F3\u866B\u304B\u3088\uFF01\u91D1\u8FD4\u305B\u30A7\uFF01"
+    CharacterPoseType: 3
+  - NarrativeType: 16
+    Order: 0
+    Body: "\u3046\u308F\u30AD\u30E2\u3001\u3053\u3053 \u3079\u3068\u3079\u3068 \u3058\u3083\u3093\u2026"
+    CharacterPoseType: 1
+  - NarrativeType: 16
+    Order: 1
+    Body: "\u2026\u2026\u2026"
+    CharacterPoseType: 9
+  - NarrativeType: 16
+    Order: 2
+    Body: "\u3084\u3079\u3001\u3079\u3068\u3079\u3068 \u53D6\u308B\u306E\u306B\u5922\u4E2D\u306B\u306A\u3063\u3066\u305F\u2026\u2026"
+    CharacterPoseType: 11
+  - NarrativeType: 17
+    Order: 0
+    Body: "\u3046\u305D\uFF01\uFF1F \u6642\u9593\u3059\u304E\u3061\u3083\u3063\u305F\uFF01\uFF1F"
+    CharacterPoseType: 1
+  - NarrativeType: 17
+    Order: 1
+    Body: "\u5E30\u308C\u306A\u304F\u306A\u3063\u3061\u3083\u3063\u305F\u3058\u3083\u3093\uFF01"
+    CharacterPoseType: 2
+  - NarrativeType: 17
+    Order: 2
+    Body: "\u3068\u307B\u307B\uFF5E\uFF5E\uFF5E\uFF5E\u3001\u3082\u3046\u30C8\u30EC\u30B8\u30E3\u30FC\u30CF\u30F3\u30BF\u30FC\u306F\u3053\u308A\u3054\u308A\u3060\u3088\uFF5E\uFF01"
+    CharacterPoseType: 11
+  - NarrativeType: 18
+    Order: 0
+    Body: "\u3093\u3043\uFF5E\u3001\u3082\u3044\u3063\u3053\u307D\u3057\u3083\u3051\u3058\u3083\u3041\uFF5E\u3093\u3001\u306E\u3093\u3058\u3083\u3048\uFF5E\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 18
+    Order: 1
+    Body: "\u2026\u2026\u2026\u3059\u3074\u30FC\u2026\u2026\u2026\u2026"
+    CharacterPoseType: 6
+  - NarrativeType: 18
+    Order: 2
+    Body: "\u306F\u30C3\uFF01\uFF1F\u3048\uFF01\uFF1F\u4ECA\u4F55\u6642\uFF01\uFF1F\uFF01\uFF1F"
+    CharacterPoseType: 11
+  - NarrativeType: 19
+    Order: 0
+    Body: "\u3093\uFF5E\u3001\u3053\u306E\u8FBA\u3067\u5207\u308A\u4E0A\u3052\u3088\u3046\u304B\u306A\uFF1F\u307E\u3060\u6642\u9593\u306F\u3042\u308B\u3051\u3069\u2026"
+    CharacterPoseType: 0
+  - NarrativeType: 20
+    Order: 0
+    Body: "\u3046\u3063\u3057\u3063\u3057\uFF01\u304A\u5B9D\u58F2\u3063\u3066\u9152\u76DB\u308A\u3088\uFF5E\uFF5E\uFF5E\u3063\uFF01\uFF01"
+    CharacterPoseType: 8
+  - NarrativeType: 20
+    Order: 1
+    Body: "\u3042\u3068\u3001\u3042\u308C\u3082\u8CB7\u3063\u3066\u30B3\u30EC\u3082\u8CB7\u3063\u3066\u2026\u3050\u3078\u3078\u3078\u2661"
+    CharacterPoseType: 8
+  - NarrativeType: 21
+    Order: 0
+    Body: "\u307E\u3060\u30A4\u30B1\u308B\u30A4\u30B1\u308B\uFF01\u3082\u3063\u3068
+      \u3064\u3081\u3053\u3081\u308B \u3064\u3081\u3053\u3081\u308B\uFF01"
+    CharacterPoseType: 9
+  - NarrativeType: 22
+    Order: 0
+    Body: "\u304A\u3001\u306E\u3079\u307C\u3046\uFF01\u304A\u3082\u3044\u3051\u3069\u3001\u58F2\u308B\u3068\u9AD8\u3044\u306E\u3088\u306D\uFF5E"
+    CharacterPoseType: 10
+  - NarrativeType: 23
+    Order: 0
+    Body: "\u3086\u3073\u308F\u2026\u6C17\u3092\u4ED8\u3051\u306A\u3044\u3068\u30AC\u30E9\u30AF\u30BF\u63B4\u307E\u3055\u308C\u308B\u306E\u3088\u306D\u30A7\u2026"
+    CharacterPoseType: 2
+  - NarrativeType: 24
+    Order: 0
+    Body: "\u3051\u3093\u2026\u3002\u3042\u305F\u3057\u3042\u3093\u307E\u304F\u308F\u3057\u304F\u306A\u3044\u306E\u3088\u306D\u30A7"
+    CharacterPoseType: 2
+  - NarrativeType: 25
+    Order: 0
+    Body: "\u307E\u3069\u3046\u3057\u3087\u30AD\u30E9\u30A4\uFF01\u3082\u3058\u30AD\u30E9\u30A4\uFF01\n\u2026\u2026\u3067\u3082\u30A8\u30B0\u30A4\u4FA1\u5024\u306E\u3084\u3064\u3082\u3042\u308B\u306E\u3088\u306D\u30A7"
+    CharacterPoseType: 1
+  - NarrativeType: 26
+    Order: 0
+    Body: "\u5B9D\u7BB1\u304B\u3042\u3002\u304B\u304E \u6301\u3063\u3066\u305F\u3063\u3051\uFF1F"
+    CharacterPoseType: 0
+  - NarrativeType: 27
+    Order: 0
+    Body: "\u30DD\u30FC\u30B7\u30E7\u30F3\u306F\u3042\u308A\u3075\u308C\u3066\u308B\u3051\u3069\u3001\u5B89\u5B9A\u3057\u3066\u308B\u304B\u3089\u30AD\u30E9\u30A4\u3058\u3083\u306A\u3044\u306D"
+    CharacterPoseType: 10
+  - NarrativeType: 28
+    Order: 0
+    Body: "\u3080\u3080\u3001\u30E4\u30D0\u305D\u3046\u306A\u30CB\u30AA\u30A4\u2026\uFF01"
+    CharacterPoseType: 9
+  - NarrativeType: 29
+    Order: 0
+    Body: "\u3048\u3001\u307E\u3058\u3001\u30CA\u30CB\u30B3\u30EC\u2026\uFF1F"
+    CharacterPoseType: 11
+  - NarrativeType: 30
+    Order: 0
+    Body: "\u30B3\u30EC\u304C\u3042\u308B\u3068\u76EE\u5229\u304D\u304C\u3084\u308A\u3084\u3059\u3044\uFF01"
+    CharacterPoseType: 10
+  - NarrativeType: 31
+    Order: 0
+    Body: "\u5B9D\u7BB1\u306E \u304B\u304E \u306D\u3002\u304B\u304E\u3042\u306A \u3042\u3046\u304B\u306A\u2026\uFF1F"
+    CharacterPoseType: 0
+  - NarrativeType: 32
+    Order: 0
+    Body: "\u3053\u3093\u306A\u306E\u62FE\u3063\u305F\u3063\u3051\uFF1F\u3046\u30FC\u3093\u3001\u304A\u307C\u3048\u3066\u306A\u3044\u3084\u2026"
+    CharacterPoseType: 0

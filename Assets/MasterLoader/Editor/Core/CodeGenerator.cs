@@ -24,8 +24,24 @@ $"* このコードに行った変更は自動生成時に破棄されます。{
 $"* ---------------------------------------------{GetLine()}" +
 $"*/{GetLine()}{GetLine()}";
 
-        public const string CS_PATH = "Assets/MasterLoader/Scripts/Generated/";
         private const string _DEFAULT_MASTER_PATH = "Assets/MasterLoader/Master";
+
+        private const string _DEFAULT_GENERATED_ROOT = "Assets/PlugIns/MasterLoader/Generated";
+
+        private static string GetGeneratedRootPath(IConfig config)
+        {
+            var path = config.WindowConfig.GeneratedRootPath;
+            return string.IsNullOrEmpty(path) ? _DEFAULT_GENERATED_ROOT : path;
+        }
+
+        public static string GetGeneratedScriptsPath(IConfig config)
+            => $"{GetGeneratedRootPath(config)}/Scripts/";
+
+        private static string GetFacadePath(IConfig config)
+            => $"{GetGeneratedRootPath(config)}/Scripts/";
+
+        private static string GetPrefabPath(IConfig config)
+            => $"{GetGeneratedRootPath(config)}/Prefab";
 
         private const string _NAMESPACE = "MasterLoader";
         public const string CS = ".cs";
@@ -77,7 +93,8 @@ $"*/{GetLine()}{GetLine()}";
             var parameterList = result.Parameter;
             var valueList = result.ValueList;
 
-            CreateDirectoryIfNeed(CS_PATH, CS_PATH);
+            var csPath = GetGeneratedScriptsPath(config);
+            CreateDirectoryIfNeed(csPath, csPath);
             CreateDirectoryIfNeed
             (
                 AssetDatabase.GetAssetPath(config.WindowConfig.MasterPathFolder),
@@ -135,8 +152,8 @@ $"*/{GetLine()}{GetLine()}";
                 var setDataCode = GenerateMasterFunctionCode(masterName, masterProperty, valueList, parameterList.Length, parameterCode);
                 var masterCode = GenerateMasterCode(masterName, StringStore.MASTER, masterProperty, nameSpace, setDataCode);
 
-                var rawCsPath = $"{CS_PATH}{masterName}{CS}";
-                var masterCsPath = $"{CS_PATH}{masterName}{StringStore.MASTER}{CS}";
+                var rawCsPath = $"{csPath}{masterName}{CS}";
+                var masterCsPath = $"{csPath}{masterName}{StringStore.MASTER}{CS}";
 
                 using (var sw = new StreamWriter(rawCsPath, false, Encoding.UTF8))
                 {
@@ -160,7 +177,7 @@ $"*/{GetLine()}{GetLine()}";
                                 GenerateEnumCode(ev),
                                 false
                             );
-                            var enumCsPath = $"{CS_PATH}{GetPascalCase(ev.Name)}{CS}";
+                            var enumCsPath = $"{csPath}{GetPascalCase(ev.Name)}{CS}";
                             using (var sw = new StreamWriter(enumCsPath, false, Encoding.UTF8))
                             {
                                 sw.Write(enumCode);
@@ -270,9 +287,10 @@ $"*/{GetLine()}{GetLine()}";
                     config.MasterBody
                 );
 
-                CreateDirectoryIfNeed(StringStore.FACADE_PATH, StringStore.FACADE_PATH);
+                var facadePath = GetFacadePath(config);
+                CreateDirectoryIfNeed(facadePath, facadePath);
 
-                var facadeCsPath = $"{StringStore.FACADE_PATH}{StringStore.MASTER_FACADE_NAME}{CS}";
+                var facadeCsPath = $"{facadePath}{StringStore.MASTER_FACADE_NAME}{CS}";
                 using (var sw = new StreamWriter(facadeCsPath, false, Encoding.UTF8))
                 {
                     sw.Write(injectorCode);
@@ -336,7 +354,17 @@ $"*/{GetLine()}{GetLine()}";
                         enumIndexList.Add(parameterIndex);
                         break;
                     default:
-                        Debug.LogError($"MasterLoader Info: unexpected parameter: {parameterList[parameterIndex]}. MasterLoader supports only 'int', 'float', 'double', 'bool', 'string', 'enum' type.\n check your master sheet's type or value row.");
+                        // type 列に enum 型名が直接指定されている場合（例: TreasureType）
+                        code += $"{GetBaseIndent(6)}case {parameterIndex}:" +
+                        $"{GetBaseIndent(6)}{{" +
+                        $"{GetBaseIndent(6)}{GetIndent()}if (!Enum.TryParse<{GetPascalCase(type)}>(data[valueIndex], out var value))" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{{" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}OutputParseErrorLog(data[valueIndex], \"{type}\");" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetIndent()}break;" +
+                        $"{GetBaseIndent(6)}{GetIndent()}}}" +
+                        $"{GetBaseIndent(6)}{GetIndent()}{GetInputCode(parameter)}" +
+                        $"{GetBaseIndent(6)}}}";
+                        enumIndexList.Add(parameterIndex);
                         break;
                 }
             }
@@ -531,6 +559,8 @@ $"*/{GetLine()}{GetLine()}";
             $"{GetBaseIndent(6)}{GetIndent()}{GetInputCode(parameter)}" +
             $"{GetBaseIndent(6)}}}";
         }
+
+        public static string ToPascalCase(string body) => GetPascalCase(body);
 
         private static string GetPascalCase(string body)
         {

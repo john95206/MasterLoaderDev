@@ -21,6 +21,8 @@ namespace MasterLoaderConfig
         private LineType _lineType = LineType.CRLF;
         [SerializeField]
         private IndentType _indentType = IndentType.SPACE;
+        [SerializeField]
+        private string _generatedRootPath = string.Empty;
 
         public string DriveUrl => _driveUrl;
         public string SheetUrl => _sheetUrl;
@@ -29,6 +31,7 @@ namespace MasterLoaderConfig
         public DefaultAsset MasterPathFolder => _masterPathFolder;
         public LineType LineType => _lineType;
         public IndentType IndentType => _indentType;
+        public string GeneratedRootPath => _generatedRootPath;
 
         public void SetDriveUrl(string driveUrl)
         {
@@ -63,6 +66,11 @@ namespace MasterLoaderConfig
         public void SetMasterPathFolder(DefaultAsset masterPathFolder)
         {
             _masterPathFolder = masterPathFolder;
+        }
+
+        public void SetGeneratedRootPath(string path)
+        {
+            _generatedRootPath = path;
         }
     }
 }

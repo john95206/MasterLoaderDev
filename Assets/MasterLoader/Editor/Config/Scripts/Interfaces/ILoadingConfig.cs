@@ -18,5 +18,10 @@ namespace MasterLoaderConfig
         void SetEnumValueList(EnumValue[] enumValues);
         void ClearLoadedResultList();
         void ClearEnumValueList();
+
+        IReadOnlyList<string> StoredMasterNames { get; }
+        string GetMasterSignature(string masterName);
+        void SetMasterSignature(string masterName, string signature);
+        void RemoveMasterSignature(string masterName);
     }
 }

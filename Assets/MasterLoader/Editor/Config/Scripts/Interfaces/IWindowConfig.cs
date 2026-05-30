@@ -22,5 +22,8 @@ namespace MasterLoaderConfig
         void SetMasterPathFolder(DefaultAsset masterPathFolder);
         void SetIndentType(IndentType indentType);
         void SetLineType(LineType lineType);
+
+        string GeneratedRootPath { get; }
+        void SetGeneratedRootPath(string path);
     }
 }

@@ -1,0 +1,17 @@
+{
+    "name": "com.waitingforyou.masterloader",
+    "version": "0.9.0",
+    "displayName": "MasterLoader",
+    "description": "Automatically generates ScriptableObject master data from Google Spreadsheets.",
+    "unity": "2020.1",
+    "author": {
+        "name": "Yuu"
+    },
+    "dependencies": {},
+    "keywords": [
+        "master",
+        "spreadsheet",
+        "google",
+        "scriptableobject"
+    ]
+}

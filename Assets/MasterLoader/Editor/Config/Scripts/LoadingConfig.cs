@@ -7,6 +7,16 @@ using UnityEngine;
 
 namespace MasterLoaderConfig
 {
+    [Serializable]
+    internal class MasterSignatureEntry
+    {
+        public string Name;
+        public string Signature;
+    }
+}
+
+namespace MasterLoaderConfig
+{
     /// <summary>
     /// マスタのロードで使う処理のクラス
     /// </summary>
@@ -21,6 +31,8 @@ namespace MasterLoaderConfig
         private List<MasterDataRaw> _loadedResultList = new List<MasterDataRaw>();
         [SerializeField]
         private List<EnumValue> _enumValueList = new List<EnumValue>();
+        [SerializeField]
+        private List<MasterSignatureEntry> _masterSignatures = new List<MasterSignatureEntry>();
 
         public string NameSpace => _nameSpace;
         public bool IsWaitingCreateMaster => _isWaitingCreateMaster;
@@ -68,6 +80,28 @@ namespace MasterLoaderConfig
         public void ClearEnumValueList()
         {
             _enumValueList.Clear();
+        }
+
+        public IReadOnlyList<string> StoredMasterNames
+            => _masterSignatures.Select(e => e.Name).ToList().AsReadOnly();
+
+        public string GetMasterSignature(string masterName)
+        {
+            return _masterSignatures.FirstOrDefault(e => e.Name == masterName)?.Signature ?? string.Empty;
+        }
+
+        public void SetMasterSignature(string masterName, string signature)
+        {
+            var entry = _masterSignatures.FirstOrDefault(e => e.Name == masterName);
+            if (entry != null)
+                entry.Signature = signature;
+            else
+                _masterSignatures.Add(new MasterSignatureEntry { Name = masterName, Signature = signature });
+        }
+
+        public void RemoveMasterSignature(string masterName)
+        {
+            _masterSignatures.RemoveAll(e => e.Name == masterName);
         }
     }
 }

@@ -504,6 +504,19 @@ namespace MasterLoader.Core
 
             EditorGUILayout.Space();
 
+            var generatedRootPath = EditorGUILayout.TextField("Generated Root Path", windowConfig.GeneratedRootPath);
+            if (generatedRootPath != windowConfig.GeneratedRootPath)
+            {
+                windowConfig.SetGeneratedRootPath(generatedRootPath);
+                _isDirty = true;
+            }
+            var generatedRootDisplay = string.IsNullOrEmpty(windowConfig.GeneratedRootPath)
+                ? "Assets/PlugIns/MasterLoader/Generated (default)"
+                : windowConfig.GeneratedRootPath;
+            EditorGUILayout.LabelField($"Scripts will be generated to: {generatedRootDisplay}/Scripts/");
+
+            EditorGUILayout.Space();
+
             _nameSpace = EditorGUILayout.TextField("namespace", loadingConfig.NameSpace);
             if(_nameSpace != loadingConfig.NameSpace)
             {

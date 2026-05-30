@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using MasterLoaderConfig;
 using System.Linq;
 using System.IO;
@@ -157,39 +159,49 @@ namespace MasterLoader.Core
 
         public static bool CreateMaster(string masterName)
         {
-            if (!LoadMaster(masterName))
-            {
-                return false;
-            }
-            return CreateMaster_();
+            if (!LoadMaster(masterName)) return false;
+            return CreateMaster_(deleteObsolete: false);
         }
 
         public static bool CreateAll()
         {
-            if (!LoadAllMaster())
-            {
-                return false;
-            }
-            return CreateMaster_();
+            if (!LoadAllMaster()) return false;
+            return CreateMaster_(deleteObsolete: true);
         }
 
-        private static bool CreateMaster_()
+        private static bool CreateMaster_(bool deleteObsolete)
         {
             _scheduler.SetIsWaitingCompiled(true);
             var list = ConfigData.LoadingConfig.LoadedResultList;
-            foreach (var _loadedResult in list)
+            var currentNames = new HashSet<string>(list.Select(r => r.Name));
+
+            if (deleteObsolete)
             {
-                if (!GenerateCode(ConfigData, _loadedResult))
-                {
-                    //list.Clear();
-                    return false;
-                }
+                DeleteObsoleteFiles(currentNames);
             }
-            if (!CodeGenerator.GenerateInjector(ConfigData))
+
+            var needsRecompile = false;
+            foreach (var loadedResult in list)
             {
-                return false;
+                if (!IsStructureChanged(loadedResult)) continue;
+                needsRecompile = true;
+                if (!GenerateCode(ConfigData, loadedResult)) return false;
+                ConfigData.LoadingConfig.SetMasterSignature(loadedResult.Name, ComputeSignature(loadedResult));
             }
+
+            if (needsRecompile && !CodeGenerator.GenerateInjector(ConfigData)) return false;
+
             SaveConfig();
+
+            if (!needsRecompile)
+            {
+                _scheduler.SetIsWaitingCompiled(false);
+                CreateMasterScriptableObjects(ConfigData);
+                RefreshLoadedResult();
+                RefreshEnumValueList();
+                _scheduler.OnStartWaitingTicked(CreateFacade);
+                return true;
+            }
 
             if (!EditorApplication.isCompiling)
             {
@@ -198,6 +210,53 @@ namespace MasterLoader.Core
             }
             Debug.Log("MasterLoader Info: Now Compiling...");
             return true;
+        }
+
+        private static bool IsStructureChanged(MasterDataRaw result)
+        {
+            var csPath = CodeGenerator.GetGeneratedScriptsPath(ConfigData);
+            if (!File.Exists($"{csPath}{CodeGenerator.ToPascalCase(result.Name)}{CodeGenerator.CS}")) return true;
+            return ComputeSignature(result) != ConfigData.LoadingConfig.GetMasterSignature(result.Name);
+        }
+
+        private static string ComputeSignature(MasterDataRaw result)
+        {
+            if (result.Parameter == null || result.Type == null) return string.Empty;
+            return string.Join(",", result.Parameter.Zip(result.Type, (p, t) => $"{t}:{p}"));
+        }
+
+        private static void DeleteObsoleteFiles(HashSet<string> currentNames)
+        {
+            var obsolete = ConfigData.LoadingConfig.StoredMasterNames
+                .Where(n => !currentNames.Contains(n))
+                .ToList();
+            if (obsolete.Count == 0) return;
+
+            var csPath = CodeGenerator.GetGeneratedScriptsPath(ConfigData);
+            var masterFolder = ConfigData.WindowConfig.MasterPathFolder != null
+                ? AssetDatabase.GetAssetPath(ConfigData.WindowConfig.MasterPathFolder)
+                : string.Empty;
+
+            foreach (var name in obsolete)
+            {
+                var pascalName = CodeGenerator.ToPascalCase(name);
+                DeleteFileIfExists($"{csPath}{pascalName}{CodeGenerator.CS}");
+                DeleteFileIfExists($"{csPath}{pascalName}{StringStore.MASTER}{CodeGenerator.CS}");
+                if (!string.IsNullOrEmpty(masterFolder))
+                    DeleteFileIfExists($"{masterFolder}/{pascalName}.asset");
+                ConfigData.LoadingConfig.RemoveMasterSignature(name);
+                Debug.Log($"MasterLoader Info: Deleted obsolete master: {name}");
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
+        }
+
+        private static void DeleteFileIfExists(string path)
+        {
+            if (!File.Exists(path)) return;
+            File.Delete(path);
+            var meta = path + ".meta";
+            if (File.Exists(meta)) File.Delete(meta);
         }
 
         [DidReloadScripts]
@@ -253,21 +312,33 @@ namespace MasterLoader.Core
 
         private static void CreateFacade()
         {
-            var facade = AssetDatabase.LoadMainAssetAtPath($"{StringStore.PREFAB_PATH}/{StringStore.MASTER_FACADE_NAME}.prefab") as GameObject;
+            var masterPath = ConfigData.WindowConfig.MasterPathFolder != null
+                ? AssetDatabase.GetAssetPath(ConfigData.WindowConfig.MasterPathFolder)
+                : "Assets/PlugIns/MasterLoader/Generated/Scripts";
+            var prefabPath = $"{masterPath}/Facade";
+            var facade = AssetDatabase.LoadMainAssetAtPath($"{prefabPath}/{StringStore.MASTER_FACADE_NAME}.prefab") as GameObject;
             if (facade == null)
             {
-                if (!Directory.Exists($"{StringStore.PREFAB_PATH}/"))
+                if (!Directory.Exists($"{prefabPath}/"))
                 {
-                    Directory.CreateDirectory($"{StringStore.PREFAB_PATH}/");
+                    Directory.CreateDirectory($"{prefabPath}/");
+                }
+                var facadeType = GetMasterFacadeType();
+                if (facadeType == null)
+                {
+                    Debug.LogError("MasterLoaderInfo: MasterFacade type not found.");
+                    MasterLoaderScheduler.OnEndTickAction();
+                    return;
                 }
                 var go = new GameObject();
-                go.AddComponent<MasterFacade>();
-                facade = PrefabUtility.SaveAsPrefabAsset(go, $"{StringStore.PREFAB_PATH}/{StringStore.MASTER_FACADE_NAME}.prefab");
+                go.AddComponent(facadeType);
+                facade = PrefabUtility.SaveAsPrefabAsset(go, $"{prefabPath}/{StringStore.MASTER_FACADE_NAME}.prefab");
             }
-            var component = facade.GetComponent<MasterFacade>();
+            var component = facade.GetComponent(GetMasterFacadeType()) as MonoBehaviour;
             try
             {
-                component.SetMaster();
+                if (component == null) throw new NullReferenceException("MasterFacade component is null.");
+                component.GetType().GetMethod("SetMaster")?.Invoke(component, null);
             }
             catch (NullReferenceException e)
             {
@@ -323,6 +394,16 @@ namespace MasterLoader.Core
                 SaveConfig();
                 return true;
             }
+        }
+
+        private static Type GetMasterFacadeType()
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var type = assembly.GetType($"MasterLoader.{StringStore.MASTER_FACADE_NAME}");
+                if (type != null) return type;
+            }
+            return null;
         }
 
         public static void SaveConfig()
