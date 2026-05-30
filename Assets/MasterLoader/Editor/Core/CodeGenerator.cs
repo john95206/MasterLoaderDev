@@ -186,8 +186,6 @@ $"*/{GetLine()}{GetLine()}";
                     }
                 }
 
-                AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
-
                 return true;
             }
             catch (Exception e)

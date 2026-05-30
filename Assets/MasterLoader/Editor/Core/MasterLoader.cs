@@ -175,12 +175,9 @@ namespace MasterLoader.Core
             var list = ConfigData.LoadingConfig.LoadedResultList;
             var currentNames = new HashSet<string>(list.Select(r => r.Name));
 
-            if (deleteObsolete)
-            {
-                DeleteObsoleteFiles(currentNames);
-            }
+            var hadDeletions = deleteObsolete && (DeleteObsoleteFiles(currentNames) | DeleteObsoleteEnumFiles());
 
-            var needsRecompile = false;
+            var needsRecompile = hadDeletions;
             foreach (var loadedResult in list)
             {
                 if (!IsStructureChanged(loadedResult)) continue;
@@ -189,7 +186,17 @@ namespace MasterLoader.Core
                 ConfigData.LoadingConfig.SetMasterSignature(loadedResult.Name, ComputeSignature(loadedResult));
             }
 
-            if (needsRecompile && !CodeGenerator.GenerateInjector(ConfigData)) return false;
+            if (needsRecompile)
+            {
+                ConfigData.MasterBody.SetMasters(list.Select(r => r.Name).ToArray());
+                if (!CodeGenerator.GenerateInjector(ConfigData)) return false;
+            }
+
+            if (deleteObsolete)
+            {
+                ConfigData.LoadingConfig.SetStoredEnumNames(
+                    ConfigData.LoadingConfig.EnumValueList.Select(e => CodeGenerator.ToPascalCase(e.Name)));
+            }
 
             SaveConfig();
 
@@ -225,12 +232,12 @@ namespace MasterLoader.Core
             return string.Join(",", result.Parameter.Zip(result.Type, (p, t) => $"{t}:{p}"));
         }
 
-        private static void DeleteObsoleteFiles(HashSet<string> currentNames)
+        private static bool DeleteObsoleteFiles(HashSet<string> currentNames)
         {
             var obsolete = ConfigData.LoadingConfig.StoredMasterNames
                 .Where(n => !currentNames.Contains(n))
                 .ToList();
-            if (obsolete.Count == 0) return;
+            if (obsolete.Count == 0) return false;
 
             var csPath = CodeGenerator.GetGeneratedScriptsPath(ConfigData);
             var masterFolder = ConfigData.WindowConfig.MasterPathFolder != null
@@ -248,7 +255,26 @@ namespace MasterLoader.Core
                 Debug.Log($"MasterLoader Info: Deleted obsolete master: {name}");
             }
 
-            AssetDatabase.Refresh(ImportAssetOptions.ImportRecursive);
+            return true;
+        }
+
+        private static bool DeleteObsoleteEnumFiles()
+        {
+            var currentEnumNames = new HashSet<string>(
+                ConfigData.LoadingConfig.EnumValueList.Select(e => CodeGenerator.ToPascalCase(e.Name)));
+
+            var obsolete = ConfigData.LoadingConfig.StoredEnumNames
+                .Where(n => !currentEnumNames.Contains(n))
+                .ToList();
+            if (obsolete.Count == 0) return false;
+
+            var csPath = CodeGenerator.GetGeneratedScriptsPath(ConfigData);
+            foreach (var name in obsolete)
+            {
+                DeleteFileIfExists($"{csPath}{name}{CodeGenerator.CS}");
+                Debug.Log($"MasterLoader Info: Deleted obsolete enum: {name}");
+            }
+            return true;
         }
 
         private static void DeleteFileIfExists(string path)

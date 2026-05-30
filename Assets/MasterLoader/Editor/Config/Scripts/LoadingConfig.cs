@@ -33,6 +33,8 @@ namespace MasterLoaderConfig
         private List<EnumValue> _enumValueList = new List<EnumValue>();
         [SerializeField]
         private List<MasterSignatureEntry> _masterSignatures = new List<MasterSignatureEntry>();
+        [SerializeField]
+        private List<string> _storedEnumNames = new List<string>();
 
         public string NameSpace => _nameSpace;
         public bool IsWaitingCreateMaster => _isWaitingCreateMaster;
@@ -102,6 +104,13 @@ namespace MasterLoaderConfig
         public void RemoveMasterSignature(string masterName)
         {
             _masterSignatures.RemoveAll(e => e.Name == masterName);
+        }
+
+        public IReadOnlyList<string> StoredEnumNames => _storedEnumNames.AsReadOnly();
+
+        public void SetStoredEnumNames(IEnumerable<string> names)
+        {
+            _storedEnumNames = names.ToList();
         }
     }
 }

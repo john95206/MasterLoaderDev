@@ -59,3 +59,18 @@ sysinfo.txt
 crashlytics-build.properties
 
 [Aa]ssets/Plugins/*
+
+# MasterLoader - パッケージ内の生成物（プロジェクト固有）
+Assets/MasterLoader/Scripts/Generated/
+Assets/MasterLoader/Scripts/Generated.meta
+Assets/MasterLoader/Scripts/Facade/
+Assets/MasterLoader/Scripts/Facade.meta
+Assets/MasterLoader/Master/
+Assets/MasterLoader/Master.meta
+Assets/MasterLoader/Prefab/
+Assets/MasterLoader/Prefab.meta
+Assets/MasterLoader/Editor/Config/Resources/Config.asset
+Assets/MasterLoader/Editor/Config/Resources/Config.asset.meta
+
+# MasterLoader - デフォルト生成先（利用者のプロジェクト固有）
+Assets/PlugIns/

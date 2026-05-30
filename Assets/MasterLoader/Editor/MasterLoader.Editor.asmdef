@@ -1,8 +1,7 @@
 {
     "name": "MasterLoader.Editor",
     "references": [
-        "MasterLoader.Runtime",
-        "GoogleOAuth.Editor"
+        "MasterLoader.Runtime"
     ],
     "includePlatforms": [
         "Editor"

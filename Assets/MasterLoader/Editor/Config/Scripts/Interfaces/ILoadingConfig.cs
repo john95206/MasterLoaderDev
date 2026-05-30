@@ -23,5 +23,8 @@ namespace MasterLoaderConfig
         string GetMasterSignature(string masterName);
         void SetMasterSignature(string masterName, string signature);
         void RemoveMasterSignature(string masterName);
+
+        IReadOnlyList<string> StoredEnumNames { get; }
+        void SetStoredEnumNames(IEnumerable<string> names);
     }
 }
