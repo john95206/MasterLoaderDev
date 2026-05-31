@@ -1,5 +1,5 @@
 {
-    "name": "com.waitingforyou.masterloader",
+    "name": "com.yuu.masterloader",
     "version": "0.9.0",
     "displayName": "MasterLoader",
     "description": "Automatically generates ScriptableObject master data from Google Spreadsheets.",

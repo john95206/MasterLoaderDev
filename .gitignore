@@ -58,8 +58,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
-[Aa]ssets/Plugins/*
-
 # MasterLoader - パッケージ内の生成物（プロジェクト固有）
 Assets/MasterLoader/Scripts/Generated/
 Assets/MasterLoader/Scripts/Generated.meta
