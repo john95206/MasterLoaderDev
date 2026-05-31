@@ -438,13 +438,21 @@ namespace MasterLoader.Core
             EditorUtility.SetDirty(config);
         }
 
+        private const string _CONFIG_RESOURCE_DIR = "Assets/MasterLoaderConfig/Resources";
+        private const string _CONFIG_ASSET_PATH = "Assets/MasterLoaderConfig/Resources/Config.asset";
+
         private static ConfigObject GetConfigObject()
         {
             var obj = Resources.Load<ConfigObject>(StringStore.CONFIG_PATH);
             if (obj == null)
             {
+                if (!Directory.Exists(_CONFIG_RESOURCE_DIR))
+                {
+                    Directory.CreateDirectory(_CONFIG_RESOURCE_DIR);
+                    AssetDatabase.Refresh();
+                }
                 var asset = CreateInstance<ConfigObject>();
-                AssetDatabase.CreateAsset(asset, StringStore.CONFIG_PATH);
+                AssetDatabase.CreateAsset(asset, _CONFIG_ASSET_PATH);
                 obj = asset;
             }
             obj.hideFlags = HideFlags.NotEditable;
